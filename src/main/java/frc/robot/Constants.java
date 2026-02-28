@@ -3,6 +3,11 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
+import edu.wpi.first.units.measure.LinearVelocity;
 
 public final class Constants {
     public static class Shooter {
@@ -18,6 +23,7 @@ public final class Constants {
     }
 
     public static class Feeder {
+        public static final double intakeSpeed = 1;
 
     }
 
@@ -109,25 +115,25 @@ public final class Constants {
         /* Front Left Module - Module 0 */
         public static final int FL_DRIVE_MOTOR_ID = 1;
         public static final int FL_ANGLE_MOTOR_ID = 2;
-        public static final int FL_CANCODER_ID = 1;
+        public static final int FL_CANCODER_ID = 3;
         public static final double FL_ANGLE_OFFSET = 0.0; // TODO: Set with Phoenix Tuner X
 
         /* Front Right Module - Module 1 */
-        public static final int FR_DRIVE_MOTOR_ID = 3;
-        public static final int FR_ANGLE_MOTOR_ID = 4;
-        public static final int FR_CANCODER_ID = 2;
+        public static final int FR_DRIVE_MOTOR_ID = 4;
+        public static final int FR_ANGLE_MOTOR_ID = 5;
+        public static final int FR_CANCODER_ID = 6;
         public static final double FR_ANGLE_OFFSET = 0.0; // TODO: Set with Phoenix Tuner X
 
         /* Back Left Module - Module 2 */
-        public static final int BL_DRIVE_MOTOR_ID = 5;
-        public static final int BL_ANGLE_MOTOR_ID = 6;
-        public static final int BL_CANCODER_ID = 3;
+        public static final int BL_DRIVE_MOTOR_ID = 10;
+        public static final int BL_ANGLE_MOTOR_ID = 11;
+        public static final int BL_CANCODER_ID = 12;
         public static final double BL_ANGLE_OFFSET = 0.0; // TODO: Set with Phoenix Tuner X
 
         /* Back Right Module - Module 3 */
         public static final int BR_DRIVE_MOTOR_ID = 7;
         public static final int BR_ANGLE_MOTOR_ID = 8;
-        public static final int BR_CANCODER_ID = 4;
+        public static final int BR_CANCODER_ID = 9;
         public static final double BR_ANGLE_OFFSET = 0.0; // TODO: Set with Phoenix Tuner X
     }
 
@@ -137,5 +143,9 @@ public final class Constants {
 
     public static class Quest {
 
+    }
+
+    public static class KrakenX60 {
+        public static final AngularVelocity kFreeSpeed = RPM.of(6000);
     }
 }
