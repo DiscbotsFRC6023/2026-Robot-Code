@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.SubsystemCommands;
@@ -78,5 +79,10 @@ public class RobotContainer {
   /* Expose subsystems if needed */
   public Swerve getSwerve() {
     return swerve;
+  }
+
+  /** Returns the driver controller HID so Robot can set rumble. */
+  public GenericHID getDriverController() {
+    return driver.getHID();
   }
 }
