@@ -29,7 +29,7 @@ public final class Constants {
 
     public static class Swerve {
         /* Gyro */
-        public static final int PIGEON_ID = 0;
+        public static final int PIGEON_ID = 13;
 
         /* Drivetrain Constants */
         // Distance between left and right wheels (meters)
@@ -125,15 +125,15 @@ public final class Constants {
         public static final double FR_ANGLE_OFFSET = 0.0; // TODO: Set with Phoenix Tuner X
 
         /* Back Left Module - Module 2 */
-        public static final int BL_DRIVE_MOTOR_ID = 10;
-        public static final int BL_ANGLE_MOTOR_ID = 11;
-        public static final int BL_CANCODER_ID = 12;
+        public static final int BL_DRIVE_MOTOR_ID = 7;
+        public static final int BL_ANGLE_MOTOR_ID = 8;
+        public static final int BL_CANCODER_ID = 9;
         public static final double BL_ANGLE_OFFSET = 0.0; // TODO: Set with Phoenix Tuner X
 
         /* Back Right Module - Module 3 */
-        public static final int BR_DRIVE_MOTOR_ID = 7;
-        public static final int BR_ANGLE_MOTOR_ID = 8;
-        public static final int BR_CANCODER_ID = 9;
+        public static final int BR_DRIVE_MOTOR_ID = 10;
+        public static final int BR_ANGLE_MOTOR_ID = 11;
+        public static final int BR_CANCODER_ID = 12;
         public static final double BR_ANGLE_OFFSET = 0.0; // TODO: Set with Phoenix Tuner X
     }
 
