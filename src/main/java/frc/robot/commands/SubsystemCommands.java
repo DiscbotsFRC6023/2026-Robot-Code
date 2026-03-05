@@ -12,6 +12,7 @@ import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 
 public final class SubsystemCommands {
@@ -22,6 +23,7 @@ public final class SubsystemCommands {
     private final Shooter shooter;
     private final Hood hood;
     private final Hanger hanger;
+    private final Limelight limelight;
 
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
@@ -34,6 +36,7 @@ public final class SubsystemCommands {
         Shooter shooter,
         Hood hood,
         Hanger hanger,
+        Limelight limelight,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
     ) {
@@ -44,6 +47,7 @@ public final class SubsystemCommands {
         this.shooter = shooter;
         this.hood = hood;
         this.hanger = hanger;
+        this.limelight = limelight;
 
         this.forwardInput = forwardInput;
         this.leftInput = leftInput;
@@ -56,7 +60,8 @@ public final class SubsystemCommands {
         Feeder feeder,
         Shooter shooter,
         Hood hood,
-        Hanger hanger
+        Hanger hanger,
+        Limelight limelight
     ) {
         this(
             swerve,
@@ -66,13 +71,14 @@ public final class SubsystemCommands {
             shooter,
             hood,
             hanger,
+            limelight,
             () -> 0,
             () -> 0
         );
     }
 
     public Command aimAndShoot() {
-        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, forwardInput, leftInput);
+        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, hood, limelight, forwardInput, leftInput);
         final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getPose());
         return Commands.parallel(
             aimAndDriveCommand,
@@ -81,7 +87,7 @@ public final class SubsystemCommands {
             intake.agitateCommand(),
             Commands.race(
                 Commands.waitUntil(() -> aimAndDriveCommand.isAimed() && prepareShotCommand.isReadyToShoot()),
-                Commands.waitSeconds(2.0)
+                Commands.waitSeconds(0.75)
             ).andThen(
                 Commands.waitSeconds(0.25),
                 Commands.parallel(
