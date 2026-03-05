@@ -18,5 +18,5 @@ public final class Ports {
     public static final int kHanger = 41;
 
     // PWM Ports
-    public static final int kHoodServo = 9;
+    public static final int kHoodServo = 4;
 }
