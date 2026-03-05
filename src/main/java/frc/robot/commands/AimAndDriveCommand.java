@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.Landmarks;
 import frc.robot.subsystems.Swerve;
 
 /**
@@ -18,9 +19,6 @@ import frc.robot.subsystems.Swerve;
 public class AimAndDriveCommand extends Command {
     /** Aim tolerance in degrees — if within this, {@link #isAimed()} returns true. */
     private static final double AIM_TOLERANCE_DEG = 5.0;
-
-    /** Field-relative target position to aim at (meters). Adjust for your game. */
-    private static final Translation2d TARGET_POSITION = new Translation2d(0.0, 0.0); // TODO: set to actual target
 
     private final Swerve swerve;
     private final DoubleSupplier forwardInput;
@@ -66,7 +64,7 @@ public class AimAndDriveCommand extends Command {
      */
     private Rotation2d getDirectionToTarget() {
         Translation2d robotPosition = swerve.getPose().getTranslation();
-        return TARGET_POSITION.minus(robotPosition).getAngle();
+        return Landmarks.hubPosition().minus(robotPosition).getAngle();
     }
 
     @Override

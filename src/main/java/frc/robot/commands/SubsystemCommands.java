@@ -78,8 +78,10 @@ public final class SubsystemCommands {
             aimAndDriveCommand,
             Commands.waitSeconds(0.25)
                 .andThen(prepareShotCommand),
-            Commands.waitUntil(() -> aimAndDriveCommand.isAimed() && prepareShotCommand.isReadyToShoot())
-                .andThen(feed())
+            Commands.race(
+                Commands.waitUntil(() -> aimAndDriveCommand.isAimed() && prepareShotCommand.isReadyToShoot()),
+                Commands.waitSeconds(2.0)
+            ).andThen(feed())
         );
     }
 
