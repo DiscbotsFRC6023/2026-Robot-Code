@@ -9,7 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Landmarks;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /**
  * Drives the robot using manual translation inputs while automatically
@@ -20,7 +20,7 @@ public class AimAndDriveCommand extends Command {
     /** Aim tolerance in degrees — if within this, {@link #isAimed()} returns true. */
     private static final double AIM_TOLERANCE_DEG = 5.0;
 
-    private final Swerve swerve;
+    private final CommandSwerveDrivetrain swerve;
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
 
@@ -29,7 +29,7 @@ public class AimAndDriveCommand extends Command {
     private Rotation2d targetHeading = new Rotation2d();
 
     public AimAndDriveCommand(
-        Swerve swerve,
+        CommandSwerveDrivetrain swerve,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
     ) {
@@ -45,7 +45,7 @@ public class AimAndDriveCommand extends Command {
         addRequirements(swerve);
     }
 
-    public AimAndDriveCommand(Swerve swerve) {
+    public AimAndDriveCommand(CommandSwerveDrivetrain swerve) {
         this(swerve, () -> 0, () -> 0);
     }
 
@@ -95,7 +95,7 @@ public class AimAndDriveCommand extends Command {
             -Constants.Swerve.MAX_ANGULAR_VELOCITY,
              Constants.Swerve.MAX_ANGULAR_VELOCITY);
 
-        swerve.drive(translationX, translationY, rotationOutput, true, true);
+        swerve.drive(translationX, translationY, rotationOutput, true);
     }
 
     @Override

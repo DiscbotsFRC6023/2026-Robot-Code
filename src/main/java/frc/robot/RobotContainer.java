@@ -8,7 +8,8 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.SubsystemCommands;
-import frc.robot.subsystems.Swerve;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
@@ -22,7 +23,7 @@ public class RobotContainer {
   private final CommandXboxController driver = new CommandXboxController(0);
 
   /* Subsystems */
-  private final Swerve swerve = new Swerve();
+  private final CommandSwerveDrivetrain swerve = TunerConstants.createDrivetrain();
   private final Intake intake = new Intake();
   private final Floor floor = new Floor();
   private final Feeder feeder = new Feeder();
@@ -77,7 +78,7 @@ public class RobotContainer {
   }
 
   /* Expose subsystems if needed */
-  public Swerve getSwerve() {
+  public CommandSwerveDrivetrain getSwerve() {
     return swerve;
   }
 
