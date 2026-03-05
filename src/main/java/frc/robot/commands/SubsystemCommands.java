@@ -78,7 +78,7 @@ public final class SubsystemCommands {
     }
 
     public Command aimAndShoot() {
-        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, hood, limelight, forwardInput, leftInput);
+        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, limelight, forwardInput, leftInput);
         final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getPose());
         return Commands.parallel(
             aimAndDriveCommand,
