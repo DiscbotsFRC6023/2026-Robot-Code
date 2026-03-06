@@ -33,7 +33,8 @@ public class Hood extends SubsystemBase {
 
     public Hood() {
         servo = new Servo(Ports.kHoodServo);
-        servo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
+        // Use default servo bounds without large deadband (previous 1200-1800 deadband prevented movement)
+        servo.setBoundsMicroseconds(2000, 1500, 1500, 1500, 1000);
         setPosition(currentPosition);
         SmartDashboard.putData(this);
     }

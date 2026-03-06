@@ -75,6 +75,12 @@ public class AimAndDriveCommand extends Command {
         // Try to get updated pose from Limelight for better AprilTag-based alignment
         var measurement = limelight.getMeasurement(swerve.getPose());
         if (measurement.isPresent()) {
+            // Feed the vision measurement back into the pose estimator so the swerve heading stays accurate
+            swerve.addVisionMeasurement(
+                measurement.get().poseEstimate.pose,
+                measurement.get().poseEstimate.timestampSeconds,
+                measurement.get().standardDeviations
+            );
             robotPosition = measurement.get().poseEstimate.pose.getTranslation();
             SmartDashboard.putBoolean("AimAndDrive/UsingLimelight", true);
         } else {

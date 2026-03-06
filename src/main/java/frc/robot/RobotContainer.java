@@ -73,6 +73,9 @@ public class RobotContainer {
 
     /* Start button → zero gyro heading (alternative) */
     driver.start().onTrue(SubsystemCommands.zeroGyro(swerve));
+
+    /* X button → zero gyro heading */
+    driver.x().onTrue(SubsystemCommands.zeroGyro(swerve));
   }
 
   public Command getAutonomousCommand() {
