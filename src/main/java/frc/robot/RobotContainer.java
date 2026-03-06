@@ -86,15 +86,16 @@ public class RobotContainer {
     // Simple auton: spin up shooters, then run feeders + floor to push game pieces through
     return Commands.sequence(
         // 1. Spin up the shooter and wait until it's at speed
-        shooter.spinUpCommand(2800),
+        shooter.spinUpCommand(3000),
         // 2. Keep shooter running while feeding
         Commands.parallel(
-            Commands.run(() -> shooter.setRPM(2800), shooter),
+            Commands.run(() -> shooter.setRPM(3000), shooter),
             feeder.feedCommand(),
-            Commands.waitSeconds(0.125).andThen(floor.feedCommand())
+            intake.agitateCommand(),
+            Commands.waitSeconds(0.5).andThen(floor.feedCommand())
         )
     ).finallyDo(() -> shooter.stop())
-     .withTimeout(10)
+     .withTimeout(8)
      .withName("Simple Shoot Auton");
   }
 
