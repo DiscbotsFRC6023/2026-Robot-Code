@@ -203,6 +203,12 @@ public class Intake extends SubsystemBase {
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
     }
 
+    public void handleLeftBumperPress(boolean isLeftBumperPressed) {
+        if (isLeftBumperPressed && pivotMotor.getPosition().getValue().in(Degrees) < 15) {
+            set(Position.HOMED);
+        }
+    }
+
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);

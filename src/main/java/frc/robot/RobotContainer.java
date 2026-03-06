@@ -66,7 +66,7 @@ public class RobotContainer {
     driver.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
     driver.rightBumper().whileTrue(subsystemCommands.shootManually());
     driver.leftTrigger().whileTrue(intake.intakeCommand());
-    driver.leftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
+    driver.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
 
     /* Back button → zero gyro heading */
     driver.back().onTrue(SubsystemCommands.zeroGyro(swerve));
