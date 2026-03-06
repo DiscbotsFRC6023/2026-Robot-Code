@@ -21,6 +21,7 @@ import frc.robot.subsystems.Shooter;
 public class RobotContainer {
   /* Controllers */
   private final CommandXboxController driver = new CommandXboxController(0);
+  private final CommandXboxController aux    = new CommandXboxController(1);
 
   /* Subsystems */
   private final CommandSwerveDrivetrain swerve = TunerConstants.createDrivetrain();
@@ -63,10 +64,7 @@ public class RobotContainer {
     );
 
   private void configureBindings() {
-    driver.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
-    driver.rightBumper().whileTrue(subsystemCommands.shootManually());
-    driver.leftTrigger().whileTrue(intake.intakeCommand());
-    driver.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
+    /* ── Driver (port 0) – swerve only ── */
 
     /* Back button → zero gyro heading */
     driver.back().onTrue(SubsystemCommands.zeroGyro(swerve));
@@ -76,10 +74,28 @@ public class RobotContainer {
 
     /* X button → zero gyro heading */
     driver.x().onTrue(SubsystemCommands.zeroGyro(swerve));
+
+    /* ── Aux (port 1) – mechanisms ── */
+    aux.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
+    aux.rightBumper().whileTrue(subsystemCommands.shootManually());
+    aux.leftTrigger().whileTrue(intake.intakeCommand());
+    aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
   }
 
   public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
+    // Simple auton: spin up shooters, then run feeders + floor to push game pieces through
+    return Commands.sequence(
+        // 1. Spin up the shooter and wait until it's at speed
+        shooter.spinUpCommand(2800),
+        // 2. Keep shooter running while feeding
+        Commands.parallel(
+            Commands.run(() -> shooter.setRPM(2800), shooter),
+            feeder.feedCommand(),
+            Commands.waitSeconds(0.125).andThen(floor.feedCommand())
+        )
+    ).finallyDo(() -> shooter.stop())
+     .withTimeout(10)
+     .withName("Simple Shoot Auton");
   }
 
   /* Expose subsystems if needed */
@@ -90,5 +106,10 @@ public class RobotContainer {
   /** Returns the driver controller HID so Robot can set rumble. */
   public GenericHID getDriverController() {
     return driver.getHID();
+  }
+
+  /** Returns the aux controller HID so Robot can set rumble. */
+  public GenericHID getAuxController() {
+    return aux.getHID();
   }
 }
