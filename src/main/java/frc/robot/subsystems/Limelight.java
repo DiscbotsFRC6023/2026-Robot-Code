@@ -19,10 +19,18 @@ public class Limelight extends SubsystemBase {
     private final NetworkTable telemetryTable;
     private final StructPublisher<Pose2d> posePublisher;
 
+    /** The AprilTag ID we want to aim at (tag 10). */
+    private static final int TARGET_TAG_ID = 10;
+
     public Limelight(String name) {
         this.name = name;
         this.telemetryTable = NetworkTableInstance.getDefault().getTable("SmartDashboard/" + name);
         this.posePublisher = telemetryTable.getStructTopic("Estimated Robot Pose", Pose2d.struct).publish();
+
+        // Only use AprilTag 10 for pose estimation — avoids oscillation when
+        // tags 9 and 10 are both visible and the pose jumps between them.
+        LimelightHelpers.SetFiducialIDFiltersOverride(name, new int[]{ TARGET_TAG_ID });
+        LimelightHelpers.setPriorityTagID(name, TARGET_TAG_ID);
     }
 
     public Optional<Measurement> getMeasurement(Pose2d currentRobotPose) {
