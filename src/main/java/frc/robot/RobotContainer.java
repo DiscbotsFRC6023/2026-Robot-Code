@@ -83,11 +83,15 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    // Simple auton: spin up shooters, then run feeders + floor to push game pieces through
+    // Simple auton: drive back, then spin up shooters and feed
     return Commands.sequence(
-        // 1. Spin up the shooter and wait until it's at speed
+        // 1. Drive backward for 0.5 seconds
+        Commands.run(() -> swerve.drive(-1.0, 0, 0, false), swerve)
+            .withTimeout(0.5)
+            .andThen(Commands.runOnce(swerve::stop, swerve)),
+        // 2. Spin up the shooter and wait until it's at speed
         shooter.spinUpCommand(3000),
-        // 2. Keep shooter running while feeding
+        // 3. Keep shooter running while feeding
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(3000), shooter),
             feeder.feedCommand(),
@@ -95,7 +99,7 @@ public class RobotContainer {
             Commands.waitSeconds(0.5).andThen(floor.feedCommand())
         )
     ).finallyDo(() -> shooter.stop())
-     .withTimeout(8)
+     .withTimeout(9)
      .withName("Simple Shoot Auton");
   }
 
