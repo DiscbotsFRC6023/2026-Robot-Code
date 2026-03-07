@@ -4,7 +4,12 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.SubsystemCommands;
@@ -33,9 +38,19 @@ public class RobotContainer {
   private final Hanger hanger = new Hanger();
   private final Limelight limelight = new Limelight("limelight");
 
+  /* Auto chooser */
+  private final SendableChooser<Command> autoChooser;
 
 
   public RobotContainer() {
+    // Register named commands BEFORE building the auto chooser.
+    // These names must match the event marker / command names you set in PathPlanner GUI.
+    registerNamedCommands();
+
+    // Build the auto chooser from all autos in deploy/pathplanner/autos/
+    autoChooser = AutoBuilder.buildAutoChooser();   // default auto will be Commands.none()
+    SmartDashboard.putData("Auto Chooser", autoChooser);
+
     /* Set default commands */
     swerve.setDefaultCommand(
         SubsystemCommands.teleopDrive(
@@ -48,6 +63,25 @@ public class RobotContainer {
     );
 
     configureBindings();
+  }
+
+  /**
+   * Register named commands so PathPlanner event markers can trigger them.
+   * Add any additional named commands here as you create more autos.
+   */
+  private void registerNamedCommands() {
+    NamedCommands.registerCommand("intake", intake.intakeCommand());
+    NamedCommands.registerCommand("feed",
+        Commands.parallel(feeder.feedCommand(), Commands.waitSeconds(0.25).andThen(floor.feedCommand())));
+    NamedCommands.registerCommand("spinUpShooter", shooter.spinUpCommand(3000));
+    NamedCommands.registerCommand("shoot",
+        Commands.parallel(
+            Commands.run(() -> shooter.setRPM(3000), shooter),
+            feeder.feedCommand(),
+            intake.agitateCommand(),
+            Commands.waitSeconds(0.5).andThen(floor.feedCommand())
+        ).withTimeout(2).finallyDo(() -> shooter.stop()));
+    NamedCommands.registerCommand("stopShooter", Commands.runOnce(() -> shooter.stop(), shooter));
   }
 
   private final SubsystemCommands subsystemCommands = new SubsystemCommands(
@@ -83,24 +117,9 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    // Simple auton: drive back, then spin up shooters and feed
-    return Commands.sequence(
-        // 1. Drive backward for 0.5 seconds
-        Commands.run(() -> swerve.drive(-1.0, 0, 0, false), swerve)
-            .withTimeout(0.5)
-            .andThen(Commands.runOnce(swerve::stop, swerve)),
-        // 2. Spin up the shooter and wait until it's at speed
-        shooter.spinUpCommand(3000),
-        // 3. Keep shooter running while feeding
-        Commands.parallel(
-            Commands.run(() -> shooter.setRPM(3000), shooter),
-            feeder.feedCommand(),
-            intake.agitateCommand(),
-            Commands.waitSeconds(0.5).andThen(floor.feedCommand())
-        )
-    ).finallyDo(() -> shooter.stop())
-     .withTimeout(9)
-     .withName("Simple Shoot Auton");
+    // Returns whichever auto is selected on the SmartDashboard/Shuffleboard chooser.
+    // These autos are built from the .auto files in deploy/pathplanner/autos/
+    return autoChooser.getSelected();
   }
 
   /* Expose subsystems if needed */

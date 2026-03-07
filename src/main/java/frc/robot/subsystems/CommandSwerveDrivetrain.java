@@ -5,12 +5,18 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,6 +48,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configureAutoBuilder();
     }
 
     public CommandSwerveDrivetrain(
@@ -53,6 +60,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configureAutoBuilder();
     }
 
     public CommandSwerveDrivetrain(
@@ -66,6 +74,43 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
               odometryStandardDeviation, visionStandardDeviation, modules);
         if (Utils.isSimulation()) {
             startSimThread();
+        }
+        configureAutoBuilder();
+    }
+
+    // ======================== PATHPLANNER AUTO BUILDER ========================
+
+    /**
+     * Configures PathPlanner's AutoBuilder so it can generate path-following commands.
+     * Call this once in the constructor after the drivetrain is fully initialized.
+     */
+    private void configureAutoBuilder() {
+        try {
+            RobotConfig config = RobotConfig.fromGUISettings();
+
+            AutoBuilder.configure(
+                this::getPose,                // Pose supplier
+                this::resetOdometry,          // Pose reset consumer
+                this::getChassisSpeeds,       // ChassisSpeeds supplier (robot-relative)
+                (speeds, feedforwards) ->      // ChassisSpeeds consumer to drive the robot
+                    drive(speeds.vxMetersPerSecond,
+                          speeds.vyMetersPerSecond,
+                          speeds.omegaRadiansPerSecond,
+                          false),              // robot-relative since PathPlanner outputs robot-relative
+                new PPHolonomicDriveController(
+                    new PIDConstants(5.0, 0.0, 0.0),   // Translation PID — tune these!
+                    new PIDConstants(4.0, 0.0, 0.0)    // Rotation PID — tune these!
+                ),
+                config,
+                () -> {
+                    // Flip path if on Red alliance
+                    var alliance = DriverStation.getAlliance();
+                    return alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
+                },
+                this  // Subsystem requirement
+            );
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to configure PathPlanner AutoBuilder: " + e.getMessage(), e.getStackTrace());
         }
     }
 
