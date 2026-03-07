@@ -110,7 +110,6 @@ public class RobotContainer {
     driver.x().onTrue(SubsystemCommands.zeroGyro(swerve));
 
     /* ── Aux (port 1) – mechanisms ── */
-    aux.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
     aux.rightBumper().whileTrue(subsystemCommands.shootManually());
     aux.leftTrigger().whileTrue(intake.intakeCommand());
     aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
