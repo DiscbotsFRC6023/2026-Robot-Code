@@ -70,7 +70,7 @@ public class RobotContainer {
    * Add any additional named commands here as you create more autos.
    */
   private void registerNamedCommands() {
-    NamedCommands.registerCommand("intake", intake.intakeCommand());
+    NamedCommands.registerCommand("intake", intake.intakeCommand().withTimeout(4));
     NamedCommands.registerCommand("feed",
         Commands.parallel(feeder.feedCommand(), Commands.waitSeconds(0.25).andThen(floor.feedCommand())));
     NamedCommands.registerCommand("spinUpShooter", shooter.spinUpCommand(3000));
