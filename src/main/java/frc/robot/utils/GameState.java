@@ -1,6 +1,11 @@
+package frc.robot.utils;
+
 import edu.wpi.first.wpilibj.DriverStation;
 
 public class GameState {
+
+    /** Seconds before a state transition to start rumbling the controller. */
+    private static final double RUMBLE_WARNING_TIME = 2.0;
 
     String gameData = DriverStation.getGameSpecificMessage();
 
@@ -89,5 +94,20 @@ public class GameState {
       default:
         return 0;
     }
+    }
+
+    /**
+     * Returns true when the match is within {@link #RUMBLE_WARNING_TIME} seconds
+     * of transitioning to the next teleop game state. Should be called periodically
+     * during teleop to drive controller rumble.
+     */
+    public static boolean shouldRumble() {
+        States state = getGameState();
+        // Only rumble during teleop states (not AUTO or STANDING)
+        if (state == States.AUTO || state == States.STANDING) {
+            return false;
+        }
+        double remaining = timeRemainingInCurrentState();
+        return remaining <= RUMBLE_WARNING_TIME && remaining > 0;
     }
 }
