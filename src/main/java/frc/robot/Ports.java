@@ -10,13 +10,14 @@ public final class Ports {
     // Talon FX IDs
     public static final int kIntakePivot = 22;
     public static final int kIntakeRollers = 21;
-    public static final int kFloor = 31;
+    public static final int kFloor1 = 31;
+    public static final int kFloor2 = 32;
     public static final int kFeeder = 42;
     public static final int kShooterLeft = 51;
     public static final int kShooterMiddle = 52;
     public static final int kShooterRight = 53;
     public static final int kHanger = 41;
 
-    // PWM Ports
-    public static final int kHoodServo = 4;
+    // Hood Kraken X44 TalonFX ID (on CANivore "main" bus)
+    public static final int kHoodKrakenId = 61;
 }
