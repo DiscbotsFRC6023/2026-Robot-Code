@@ -34,11 +34,13 @@ public class Floor extends SubsystemBase {
         }
     }
 
-    private final TalonFX motor;
+    private final TalonFX motor1;
+    private final TalonFX motor2;
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
     public Floor() {
-        motor = new TalonFX(Ports.kFloor, Ports.kRoboRioCANBus);
+    motor1 = new TalonFX(Ports.kFloor1, Ports.kRoboRioCANBus);
+    motor2 = new TalonFX(Ports.kFloor2, Ports.kRoboRioCANBus);
 
         final TalonFXConfiguration config = new TalonFXConfiguration()
             .withMotorOutput(
@@ -47,12 +49,17 @@ public class Floor extends SubsystemBase {
                     .withNeutralMode(NeutralModeValue.Brake)
             );
 
-        motor.getConfigurator().apply(config);
+        motor1.getConfigurator().apply(config);
+        motor2.getConfigurator().apply(config);
         SmartDashboard.putData(this);
     }
 
     public void set(Speed speed) {
-        motor.setControl(
+        motor1.setControl(
+            voltageRequest
+                .withOutput(speed.voltage())
+        );
+        motor2.setControl(
             voltageRequest
                 .withOutput(speed.voltage())
         );
@@ -65,8 +72,11 @@ public class Floor extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("RPM", () -> motor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Stator Current", () -> motor.getStatorCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty("Supply Current", () -> motor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("RPM1", () -> motor1.getVelocity().getValue().in(RPM), null);
+        builder.addDoubleProperty("Stator Current1", () -> motor1.getStatorCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("Supply Current1", () -> motor1.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("RPM2", () -> motor2.getVelocity().getValue().in(RPM), null);
+        builder.addDoubleProperty("Stator Current2", () -> motor2.getStatorCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("Supply Current2", () -> motor2.getSupplyCurrent().getValue().in(Amps), null);
     }
 }
