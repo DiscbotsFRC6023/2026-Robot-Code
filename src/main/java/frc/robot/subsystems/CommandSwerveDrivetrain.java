@@ -10,6 +10,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -192,6 +193,30 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
         return run(() -> setControl(requestSupplier.get()));
+    }
+
+    // ======================== QUEST NAVIGATION ========================
+
+    private Quest quest;
+    private double lastQuestTimestamp = -1.0;
+    private final Matrix<N3, N1> questVisionStdDevs = VecBuilder.fill(0.1, 0.1, Math.toRadians(5.0));
+
+    /**
+     * Attach the QuestNav subsystem so its pose updates can be fused into the drivetrain odometry.
+     */
+    public void setQuest(Quest quest) {
+        this.quest = quest;
+    }
+
+    @Override
+    public void periodic() {
+        if (quest != null) {
+            double questTimestamp = quest.getLatestTimestamp();
+            if (quest.hasFreshPose() && questTimestamp > lastQuestTimestamp) {
+                addVisionMeasurement(quest.getLatestPose(), questTimestamp, questVisionStdDevs);
+                lastQuestTimestamp = questTimestamp;
+            }
+        }
     }
 
     // ======================== SIMULATION ========================

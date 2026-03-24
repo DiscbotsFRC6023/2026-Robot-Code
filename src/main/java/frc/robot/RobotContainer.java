@@ -21,6 +21,7 @@ import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
+import frc.robot.subsystems.Quest;
 import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
@@ -30,6 +31,7 @@ public class RobotContainer {
 
   /* Subsystems */
   private final CommandSwerveDrivetrain swerve = TunerConstants.createDrivetrain();
+  private final Quest quest = new Quest();
   private final Intake intake = new Intake();
   private final Floor floor = new Floor();
   private final Feeder feeder = new Feeder();
@@ -43,6 +45,9 @@ public class RobotContainer {
 
 
   public RobotContainer() {
+    // Feed QuestNav pose updates into the drivetrain's pose estimator
+    swerve.setQuest(quest);
+
     // Register named commands BEFORE building the auto chooser.
     // These names must match the event marker / command names you set in PathPlanner GUI.
     registerNamedCommands();
