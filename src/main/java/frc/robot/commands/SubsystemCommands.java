@@ -84,7 +84,7 @@ public final class SubsystemCommands {
             aimAndDriveCommand,
             Commands.waitSeconds(0.25)
                 .andThen(prepareShotCommand),
-            intake.agitateCommand(),
+            intake.slowHomeCommand(),
             Commands.race(
                 Commands.waitUntil(() -> aimAndDriveCommand.isAimed() && prepareShotCommand.isReadyToShoot()),
                 Commands.waitSeconds(0.75)
@@ -113,7 +113,7 @@ public final class SubsystemCommands {
             Commands.parallel(
                 feeder.feedCommand(),
                 Commands.waitSeconds(0.125)
-                    .andThen(floor.feedCommand().alongWith(intake.agitateCommand()))
+                    .andThen(floor.feedCommand().alongWith(intake.slowHomeCommand()))
             )
         );
     }
