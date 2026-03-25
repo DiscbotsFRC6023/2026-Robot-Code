@@ -82,13 +82,13 @@ public class RobotContainer {
         Commands.parallel(feeder.feedCommand(), Commands.waitSeconds(0.25).andThen(floor.feedCommand())));
     NamedCommands.registerCommand("spinUpShooter", shooter.spinUpCommand(3000));
     NamedCommands.registerCommand("shoot",
-        Commands.parallel(
-            Commands.run(() -> shooter.setRPM(5000), shooter),
-            Commands.run(() -> hood.setAngleDegrees(7.0), hood),
-            Commands.waitSeconds(0.5).andThen(feeder.feedCommand()),
-            Commands.waitSeconds(0.25).andThen(floor.feedCommand()),
-            Commands.waitSeconds(4).andThen(intake.slowHomeCommand())
-        ).withTimeout(5).finallyDo(() -> shooter.stop()));
+        Commands.runOnce(() -> hood.setAngleDegrees(7.0), hood)
+            .andThen(Commands.parallel(
+                Commands.run(() -> shooter.setRPM(5000), shooter),
+                Commands.waitSeconds(0.5).andThen(feeder.feedCommand()),
+                Commands.waitSeconds(0.25).andThen(floor.feedCommand()),
+                Commands.waitSeconds(4).andThen(intake.slowHomeCommand())
+            ).withTimeout(5).finallyDo(() -> shooter.stop())));
     NamedCommands.registerCommand("stopShooter", Commands.runOnce(() -> shooter.stop(), shooter));
     NamedCommands.registerCommand("intakeStop", Commands.runOnce(() -> intake.set(Intake.Speed.STOP), intake));
   }
