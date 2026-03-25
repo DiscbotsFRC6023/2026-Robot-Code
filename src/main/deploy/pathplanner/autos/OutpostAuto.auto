@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "pathToDepot"
+            "pathName": "PathToOutpost"
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "DepotToOutpost"
+            "name": "intake"
           }
         },
         {
@@ -23,9 +23,9 @@
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "HubToClimb"
+            "name": "shoot"
           }
         }
       ]

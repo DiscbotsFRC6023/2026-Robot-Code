@@ -115,7 +115,8 @@ public final class SubsystemCommands {
                 Commands.waitSeconds(0.5),
                 Commands.parallel(
                     feed(),
-                    Commands.run(() -> hood.setAngleDegrees(7.0), hood)
+                    Commands.run(() -> hood.setAngleDegrees(7.0), hood),
+                    Commands.waitSeconds(4.0).andThen(intake.slowHomeCommand())
                 ))
             .handleInterrupt(() -> shooter.stop());
     }
