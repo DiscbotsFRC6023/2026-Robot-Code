@@ -84,6 +84,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("shoot",
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(3000), shooter),
+            Commands.run(() -> hood.setAngleDegrees(7.0), hood),
             Commands.waitSeconds(0.5).andThen(feeder.feedCommand()),
             Commands.waitSeconds(0.25).andThen(floor.feedCommand()),
             Commands.waitSeconds(2).andThen(intake.slowHomeCommand())
