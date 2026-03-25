@@ -12,6 +12,7 @@ import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Align;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 
@@ -24,6 +25,7 @@ public final class SubsystemCommands {
     private final Hood hood;
     private final Hanger hanger;
     private final Limelight limelight;
+    private final Align align;
 
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
@@ -36,6 +38,7 @@ public final class SubsystemCommands {
         Shooter shooter,
         Hood hood,
         Hanger hanger,
+        Align align,
         Limelight limelight,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
@@ -47,6 +50,7 @@ public final class SubsystemCommands {
         this.shooter = shooter;
         this.hood = hood;
         this.hanger = hanger;
+        this.align = align;
         this.limelight = limelight;
 
         this.forwardInput = forwardInput;
@@ -61,6 +65,7 @@ public final class SubsystemCommands {
         Shooter shooter,
         Hood hood,
         Hanger hanger,
+        Align align,
         Limelight limelight
     ) {
         this(
@@ -71,6 +76,7 @@ public final class SubsystemCommands {
             shooter,
             hood,
             hanger,
+            align,
             limelight,
             () -> 0,
             () -> 0
@@ -105,6 +111,35 @@ public final class SubsystemCommands {
                 Commands.waitSeconds(0.5),
                 feed())
             .handleInterrupt(() -> shooter.stop());
+    }
+
+    /** Align to the alliance speaker tag using Limelight, set hood from distance, and shoot while held. */
+    public Command limelightAimAndShoot() {
+        final Command alignCommand = align.alignCommand();
+
+        final Command hoodFromDistance = Commands.run(
+            () -> align.getLatestDistanceMeters().ifPresent(hood::setPositionFromAprilTagDistance),
+            hood
+        );
+
+        final Command spinUpShooter = shooter.spinUpCommand(3000);
+
+        final Command feedWhenReady = Commands.sequence(
+            Commands.waitUntil(() -> align.isAligned() && shooter.isVelocityWithinTolerance() && hood.isPositionWithinTolerance()),
+            Commands.waitSeconds(0.1),
+            Commands.parallel(
+                feeder.feedCommand(),
+                Commands.waitSeconds(0.125).andThen(floor.feedCommand())
+            )
+        );
+
+        return Commands.parallel(
+            alignCommand,
+            hoodFromDistance,
+            spinUpShooter,
+            intake.slowHomeCommand(),
+            feedWhenReady
+        ).finallyDo(() -> shooter.stop());
     }
 
     private Command feed() {

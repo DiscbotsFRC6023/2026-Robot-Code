@@ -7,6 +7,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
@@ -21,6 +22,11 @@ public class Limelight extends SubsystemBase {
     private final NetworkTable telemetryTable;
     private final StructPublisher<Pose2d> posePublisher;
 
+    /** Camera mounting info. */
+    private static final double CAMERA_PITCH_DEGREES = 28.1;
+    private static final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(22.32);
+    private static final double CAMERA_LATERAL_OFFSET_METERS = Units.inchesToMeters(5.74); // +Y is left of robot
+
     /** Red alliance: aim at tag 10 (9 and 10 are side-by-side). */
     private static final int RED_TARGET_TAG_ID = 10;
     /** Blue alliance: aim at tag 25 (25 and 26 are side-by-side). */
@@ -33,6 +39,17 @@ public class Limelight extends SubsystemBase {
         this.name = name;
         this.telemetryTable = NetworkTableInstance.getDefault().getTable("SmartDashboard/" + name);
         this.posePublisher = telemetryTable.getStructTopic("Estimated Robot Pose", Pose2d.struct).publish();
+
+        // Tell Limelight where the camera is on the robot so pose solves are correct.
+        LimelightHelpers.setCameraPose_RobotSpace(
+            name,
+            0.0,                              // forward offset (unknown/assumed 0)
+            CAMERA_LATERAL_OFFSET_METERS,     // left of robot center
+            CAMERA_HEIGHT_METERS,             // height from carpet to lens
+            0.0,                              // roll
+            CAMERA_PITCH_DEGREES,             // pitch up
+            0.0                               // yaw
+        );
     }
 
     /**
@@ -82,6 +99,44 @@ public class Limelight extends SubsystemBase {
 
         return Optional.of(new Measurement(poseEstimate_MegaTag2, standardDeviations));
     }
+
+    /**
+     * Returns the current target observation relative to the robot using camera-space pose.
+     * Distance/Yaw are corrected for the camera's lateral offset so callers can drive from the robot center.
+     */
+    public Optional<TargetObservation> getTargetObservation() {
+        updateTagFilter();
+
+        double[] targetPoseCameraSpace = LimelightHelpers.getTargetPose_CameraSpace(name);
+        if (targetPoseCameraSpace == null || targetPoseCameraSpace.length < 3 || !LimelightHelpers.getTV(name)) {
+            return Optional.empty();
+        }
+
+        // Limelight camera-space: +X forward, +Y left, +Z up (meters)
+        final double cameraX = targetPoseCameraSpace[0];
+        final double cameraY = targetPoseCameraSpace[1];
+        final double cameraZ = targetPoseCameraSpace[2];
+
+        // Shift from camera origin to robot origin using the known lateral offset (no yaw offset assumed)
+        final double robotX = cameraX;
+        final double robotY = cameraY + CAMERA_LATERAL_OFFSET_METERS;
+
+        final double distanceMeters = Math.hypot(robotX, robotY);
+        final double yawRadians = Math.atan2(robotY, robotX);
+
+        telemetryTable.getEntry("Tag Distance (m)").setDouble(distanceMeters);
+        telemetryTable.getEntry("Tag Yaw (deg)").setDouble(Math.toDegrees(yawRadians));
+
+        return Optional.of(new TargetObservation(distanceMeters, yawRadians, robotX, robotY, cameraZ));
+    }
+
+    public static record TargetObservation(
+        double distanceMeters,
+        double yawRadians,
+        double xMeters,
+        double yMeters,
+        double zMeters
+    ) {}
 
     public static class Measurement {
         public final PoseEstimate poseEstimate;
