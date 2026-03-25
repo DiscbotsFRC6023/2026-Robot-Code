@@ -109,23 +109,21 @@ public final class SubsystemCommands {
         return shooter.dashboardSpinUpCommand()
             .andThen(
                 Commands.waitSeconds(0.5),
-                feed())
+                Commands.parallel(
+                    feed(),
+                    intake.agitateCommand()
+                ))
             .handleInterrupt(() -> shooter.stop());
     }
 
-    /** Align to the alliance speaker tag using Limelight, set hood from distance, and shoot while held. */
+    /** Align to the alliance speaker tag using Limelight and shoot while held. */
     public Command limelightAimAndShoot() {
         final Command alignCommand = align.alignCommand();
-
-        final Command hoodFromDistance = Commands.run(
-            () -> align.getLatestDistanceMeters().ifPresent(hood::setPositionFromAprilTagDistance),
-            hood
-        );
 
         final Command spinUpShooter = shooter.spinUpCommand(3000);
 
         final Command feedWhenReady = Commands.sequence(
-            Commands.waitUntil(() -> align.isAligned() && shooter.isVelocityWithinTolerance() && hood.isPositionWithinTolerance()),
+            Commands.waitUntil(() -> align.isAligned() && shooter.isVelocityWithinTolerance()),
             Commands.waitSeconds(0.1),
             Commands.parallel(
                 feeder.feedCommand(),
@@ -135,7 +133,6 @@ public final class SubsystemCommands {
 
         return Commands.parallel(
             alignCommand,
-            hoodFromDistance,
             spinUpShooter,
             intake.slowHomeCommand(),
             feedWhenReady
