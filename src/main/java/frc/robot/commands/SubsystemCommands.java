@@ -106,10 +106,17 @@ public final class SubsystemCommands {
     }
 
     public Command shootManually() {
-        return shooter.dashboardSpinUpCommand()
+        return Commands.parallel(
+            shooter.dashboardSpinUpCommand(),
+            Commands.runOnce(() -> hood.setAngleDegrees(7.0), hood)
+                .andThen(Commands.run(() -> hood.setAngleDegrees(7.0), hood))
+        )
             .andThen(
                 Commands.waitSeconds(0.5),
-                feed())
+                Commands.parallel(
+                    feed(),
+                    Commands.run(() -> hood.setAngleDegrees(7.0), hood)
+                ))
             .handleInterrupt(() -> shooter.stop());
     }
 
@@ -117,12 +124,18 @@ public final class SubsystemCommands {
     public Command limelightAimAndShoot() {
         final Command alignCommand = align.alignCommand();
 
+        // Get hood position from Limelight directly and continuously hold it
         final Command hoodFromDistance = Commands.run(
-            () -> align.getLatestDistanceMeters().ifPresent(hood::setPositionFromAprilTagDistance),
-            hood
+            () -> {
+                limelight.getTargetObservation().ifPresent(obs -> hood.setPositionFromAprilTagDistance(obs.distanceMeters()));
+                // Continuously apply the current target position to fight gravity
+                hood.setAngleDegrees(hood.getTargetAngleDegrees());
+            },
+            hood,
+            limelight
         );
 
-        final Command spinUpShooter = shooter.spinUpCommand(3000);
+        final Command spinUpShooter = shooter.spinUpCommand(4500);
 
         final Command feedWhenReady = Commands.sequence(
             Commands.waitUntil(() -> align.isAligned() && shooter.isVelocityWithinTolerance() && hood.isPositionWithinTolerance()),
@@ -150,6 +163,16 @@ public final class SubsystemCommands {
                     .andThen(floor.feedCommand().alongWith(intake.slowHomeCommand()))
             )
         );
+    }
+
+    /**
+     * Creates a command that continuously holds the hood at its current target position.
+     * This applies a periodic re-command to fight gravity sag. 
+     * Useful for holding hood position during extended operations.
+     */
+    public Command hoodHoldCommand() {
+        return Commands.run(() -> hood.setAngleDegrees(hood.getTargetAngleDegrees()), hood)
+            .withName("Hood Hold");
     }
 
     /**
