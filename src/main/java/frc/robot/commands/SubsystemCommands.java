@@ -108,11 +108,10 @@ public final class SubsystemCommands {
     public Command shootManually() {
         return Commands.parallel(
             shooter.dashboardSpinUpCommand(),
-            Commands.runOnce(() -> hood.setAngleDegrees(7.0), hood)
-                .andThen(Commands.run(() -> hood.setAngleDegrees(7.0), hood))
+            Commands.run(() -> hood.setAngleDegrees(7.0), hood)
         )
+            .andThen(Commands.waitSeconds(0.5))
             .andThen(
-                Commands.waitSeconds(0.5),
                 Commands.parallel(
                     feed(),
                     Commands.run(() -> hood.setAngleDegrees(7.0), hood),
