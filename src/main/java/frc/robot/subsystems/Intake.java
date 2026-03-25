@@ -51,8 +51,9 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(3),
         STOWED(-111),
-        INTAKE(-111);
-
+        INTAKE(-111),
+        AGITATE(-75);
+        
         private final double degrees;
 
         private Position(double degrees) {
@@ -171,6 +172,16 @@ public class Intake extends SubsystemBase {
         );
     }
 
+    public Command agitateCommand() {
+        return Commands.sequence(
+            Commands.runOnce(() -> set(Position.AGITATE), this),
+            Commands.waitUntil(this::isPositionWithinTolerance),
+            Commands.runOnce(() -> set(Position.INTAKE), this),
+            Commands.waitUntil(this::isPositionWithinTolerance)
+        ).repeatedly()
+        .until(() -> false);
+    }
+
     /**
      * Slowly moves the intake pivot to the home position.
      * Stops the rollers when interrupted.
@@ -178,7 +189,7 @@ public class Intake extends SubsystemBase {
     public Command slowHomeCommand() {
         return runOnce(() -> {
             set(Speed.STOP);
-            setPivotPercentOutput(0.15);
+            setPivotPercentOutput(0.03);
         })
         .andThen(Commands.waitUntil(() -> pivotMotor.getPosition().getValue().in(Degrees) >= Position.HOMED.degrees - 5))
         .andThen(runOnce(() -> {

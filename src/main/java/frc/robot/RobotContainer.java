@@ -84,11 +84,10 @@ public class RobotContainer {
     NamedCommands.registerCommand("shoot",
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(5000), shooter),
-            Commands.run(() -> hood.setAngleDegrees(7.0), hood),
             Commands.waitSeconds(0.5).andThen(feeder.feedCommand()),
             Commands.waitSeconds(0.25).andThen(floor.feedCommand()),
-            Commands.waitSeconds(4).andThen(intake.slowHomeCommand())
-        ).withTimeout(5).finallyDo(() -> shooter.stop()));
+            Commands.waitSeconds(2).andThen(intake.slowHomeCommand())
+        ).withTimeout(4).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("stopShooter", Commands.runOnce(() -> shooter.stop(), shooter));
     NamedCommands.registerCommand("intakeStop", Commands.runOnce(() -> intake.set(Intake.Speed.STOP), intake));
   }
