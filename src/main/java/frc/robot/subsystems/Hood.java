@@ -23,12 +23,12 @@ public class Hood extends SubsystemBase {
     // Hood travel range in degrees (mechanical range of motion)
     // Adjust these based on your actual hood soft limits.
     private static final double kMinAngleDegrees = 0.0;
-    private static final double kMaxAngleDegrees = 40.0;
+    private static final double kMaxAngleDegrees = 15.0;
     private static final double kPositionToleranceDegrees = 0.5; // acceptable error at the hood
 
     // Tunable shot range (degrees) — these can be live-updated via NetworkTables
-    private static final double kDefaultInitialAngleDeg = 8.0;
-    private static final double kDefaultMaxAngleDeg = 20.0;
+    private static final double kDefaultInitialAngleDeg = 0.0;
+    private static final double kDefaultMaxAngleDeg = 15.0;
 
     // AprilTag distance mapping (meters). Distances are clamped to this range before mapping to angles.
     // These roughly match the previous shot map breakpoints (~1.3m to ~4.2m).
@@ -38,9 +38,10 @@ public class Hood extends SubsystemBase {
     // Limelight name as configured on the robot.
     private static final String kLimelightName = "limelight";
 
-    // Gear ratio: 24T motor gear driving 36T hood gear
-    // 1 motor rotation = (24/36) hood rotations = (24/36)*360 deg = 240 deg
-    private static final double kDegreesPerMotorRotation = (24.0 / 36.0) * 360.0;
+    // Gear ratio: motor rotations per hood degree
+    // Example: 50 motor rotations per 1 hood rotation (360 deg) -> 50/360 per degree.
+    // Tune this to match your mechanism.
+    private static final double kMotorRotationsPerHoodDegree = (36.0 / 24.0) / 360.0;
 
     // Motion Magic configuration (tune these for your mechanism)
     private static final double kCruiseVelocityRPS = 20.0; // rotations per second
@@ -57,10 +58,11 @@ public class Hood extends SubsystemBase {
     private double targetAngleDeg = 0.0;
 
     public Hood() {
-        motor = new TalonFX(Ports.kHoodKrakenId, Ports.kCANivoreCANBus);
+        motor = new TalonFX(Ports.kHoodKrakenId, Ports.kRoboRioCANBus);
 
         TalonFXConfiguration cfg = new TalonFXConfiguration();
         cfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        cfg.MotorOutput.Inverted = com.ctre.phoenix6.signals.InvertedValue.Clockwise_Positive;
 
         MotionMagicConfigs mm = cfg.MotionMagic;
         mm.MotionMagicCruiseVelocity = kCruiseVelocityRPS;
@@ -81,8 +83,8 @@ public class Hood extends SubsystemBase {
                 motor.getPosition(),
                 motor.getVelocity());
 
-        // Initialize at the configured starting angle
-        setAngleDegrees(hoodInitialAngleDeg);
+        // Initialize motor position to 0
+        motor.setPosition(0.0);
         SmartDashboard.putData(this);
     }
 
@@ -92,10 +94,11 @@ public class Hood extends SubsystemBase {
     public void setAngleDegrees(double angleDegrees) {
         targetAngleDeg = MathUtil.clamp(angleDegrees, kMinAngleDegrees, kMaxAngleDegrees);
 
-    // Convert hood angle (deg) to motor rotations
-    double targetMotorRotations = targetAngleDeg / kDegreesPerMotorRotation;
-    MotionMagicVoltage request = new MotionMagicVoltage(targetMotorRotations);
-    motor.setControl(request);
+        // Convert hood angle (deg) to motor rotations
+        double targetMotorRotations = targetAngleDeg * kMotorRotationsPerHoodDegree;
+
+        MotionMagicVoltage request = new MotionMagicVoltage(targetMotorRotations);
+        motor.setControl(request);
     }
 
     /**
@@ -172,20 +175,18 @@ public class Hood extends SubsystemBase {
     }
 
     public boolean isPositionWithinTolerance() {
-    // Compute current hood angle from motor position
-    double motorRotations = motor.getPosition().getValueAsDouble();
-    currentAngleDeg = motorRotations * kDegreesPerMotorRotation;
-    return MathUtil.isNear(targetAngleDeg, currentAngleDeg, kPositionToleranceDegrees);
+        // Compute current hood angle from motor position
+        double motorRotations = motor.getPosition().getValueAsDouble();
+        currentAngleDeg = motorRotations / kMotorRotationsPerHoodDegree;
+
+        return MathUtil.isNear(targetAngleDeg, currentAngleDeg, kPositionToleranceDegrees);
     }
 
     @Override
     public void periodic() {
-    // Track current angle for telemetry even if tolerance check isn't called
-    double motorRotations = motor.getPosition().getValueAsDouble();
-    currentAngleDeg = motorRotations * kDegreesPerMotorRotation;
-    SmartDashboard.putNumber("Hood/CurrentAngle", currentAngleDeg);
-    SmartDashboard.putNumber("Hood/MotorRotations", motorRotations);
-    SmartDashboard.putNumber("Hood/CurrentAngleRotations", currentAngleDeg / 360.0);
+        // Track current angle for telemetry even if tolerance check isn't called
+        double motorRotations = motor.getPosition().getValueAsDouble();
+        currentAngleDeg = motorRotations / kMotorRotationsPerHoodDegree;
     }
 
     @Override
