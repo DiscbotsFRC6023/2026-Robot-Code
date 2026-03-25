@@ -8,8 +8,13 @@
       },
       "prevControl": null,
       "nextControl": {
+<<<<<<<< HEAD:src/main/deploy/pathplanner/paths/HubToClimb.path
         "x": 2.052132530120482,
         "y": 3.6743855421686753
+========
+  "x": 6.327808948863637,
+  "y": 6.072408336292614
+>>>>>>>> 3a62cfabd6e3f022115e13385326186ece5e6f58:src/main/deploy/pathplanner/paths/Bump Shoot 1.path
       },
       "isLocked": false,
       "linkedName": null
@@ -47,8 +52,13 @@
   "reversed": false,
   "folder": null,
   "idealStartingState": {
+<<<<<<<< HEAD:src/main/deploy/pathplanner/paths/HubToClimb.path
     "velocity": 0,
     "rotation": 0.0
+========
+  "velocity": 0,
+  "rotation": -92.34991114937384
+>>>>>>>> 3a62cfabd6e3f022115e13385326186ece5e6f58:src/main/deploy/pathplanner/paths/Bump Shoot 1.path
   },
   "useDefaultConstraints": true
 }
