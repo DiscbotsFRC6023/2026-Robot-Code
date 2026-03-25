@@ -106,16 +106,16 @@ public final class SubsystemCommands {
     }
 
     public Command shootManually() {
-        return Commands.parallel(
-            shooter.dashboardSpinUpCommand(),
-            Commands.runOnce(() -> hood.setAngleDegrees(7.0), hood)
-                .andThen(Commands.run(() -> hood.setAngleDegrees(7.0), hood))
-        )
+        return Commands.runOnce(() -> hood.setAngleDegrees(7.0), hood)
+            .andThen(Commands.parallel(
+                shooter.dashboardSpinUpCommand(),
+                hoodHoldCommand()
+            ))
             .andThen(
                 Commands.waitSeconds(0.5),
                 Commands.parallel(
                     feed(),
-                    Commands.run(() -> hood.setAngleDegrees(7.0), hood),
+                    hoodHoldCommand(),
                     Commands.waitSeconds(4.0).andThen(intake.slowHomeCommand())
                 ))
             .handleInterrupt(() -> shooter.stop());
