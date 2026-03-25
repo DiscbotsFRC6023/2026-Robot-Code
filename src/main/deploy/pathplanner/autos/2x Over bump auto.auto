@@ -15,18 +15,37 @@
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "intake"
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "intake"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "intakeStop"
+                      }
+                    }
+                  ]
                 }
               }
             ]
           }
         },
         {
-          "type": "wait",
+          "type": "path",
           "data": {
-            "waitTime": 1.0
+            "pathName": "Bump Shoot 1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
           }
         },
         {
@@ -36,16 +55,22 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "pathToHub"
+                  "pathName": "PathOverBump+collectFuel 2"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "spinUpShooter"
+                  "name": "intake"
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bump shoot 2"
           }
         },
         {

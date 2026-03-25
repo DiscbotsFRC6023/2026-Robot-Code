@@ -20,7 +20,9 @@ import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Align;
 import frc.robot.subsystems.Limelight;
+import frc.robot.subsystems.Quest;
 import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
@@ -30,6 +32,7 @@ public class RobotContainer {
 
   /* Subsystems */
   private final CommandSwerveDrivetrain swerve = TunerConstants.createDrivetrain();
+  private final Quest quest = new Quest();
   private final Intake intake = new Intake();
   private final Floor floor = new Floor();
   private final Feeder feeder = new Feeder();
@@ -37,12 +40,16 @@ public class RobotContainer {
   private final Hood hood = new Hood();
   private final Hanger hanger = new Hanger();
   private final Limelight limelight = new Limelight("limelight");
+  private final Align align = new Align(swerve, limelight);
 
   /* Auto chooser */
   private final SendableChooser<Command> autoChooser;
 
 
   public RobotContainer() {
+    // Feed QuestNav pose updates into the drivetrain's pose estimator
+    swerve.setQuest(quest);
+
     // Register named commands BEFORE building the auto chooser.
     // These names must match the event marker / command names you set in PathPlanner GUI.
     registerNamedCommands();
@@ -77,10 +84,10 @@ public class RobotContainer {
     NamedCommands.registerCommand("shoot",
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(3000), shooter),
-            feeder.feedCommand(),
-            intake.slowHomeCommand(),
-            Commands.waitSeconds(0.5).andThen(floor.feedCommand())
-        ).withTimeout(2).finallyDo(() -> shooter.stop()));
+            Commands.waitSeconds(0.5).andThen(feeder.feedCommand()),
+            Commands.waitSeconds(0.25).andThen(floor.feedCommand()),
+            Commands.waitSeconds(2).andThen(intake.slowHomeCommand())
+        ).withTimeout(4).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("stopShooter", Commands.runOnce(() -> shooter.stop(), shooter));
     NamedCommands.registerCommand("intakeStop", Commands.runOnce(() -> intake.set(Intake.Speed.STOP), intake));
   }
@@ -93,6 +100,7 @@ public class RobotContainer {
         shooter,
         hood,
         hanger,
+    align,
         limelight,
         () -> -driver.getLeftY(),
         () -> -driver.getLeftX()
@@ -112,6 +120,7 @@ public class RobotContainer {
 
     /* ── Aux (port 1) – mechanisms ── */
     aux.rightBumper().whileTrue(subsystemCommands.shootManually());
+    aux.rightTrigger().whileTrue(subsystemCommands.limelightAimAndShoot());
     aux.leftTrigger().whileTrue(intake.intakeCommand());
     aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
   }
