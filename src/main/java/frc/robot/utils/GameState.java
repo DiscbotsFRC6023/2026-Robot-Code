@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 public class GameState {
 
     /** Seconds before a state transition to start rumbling the controller. */
-    private static final double RUMBLE_WARNING_TIME = 2.0;
+    private static final double RUMBLE_WARNING_TIME_SECONDS = 3.0;
 
     String gameData = DriverStation.getGameSpecificMessage();
 
@@ -108,6 +108,6 @@ public class GameState {
             return false;
         }
         double remaining = timeRemainingInCurrentState();
-        return remaining <= RUMBLE_WARNING_TIME && remaining > 0;
+        return remaining <= RUMBLE_WARNING_TIME_SECONDS && remaining > 0;
     }
-}
+} 
