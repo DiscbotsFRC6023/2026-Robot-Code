@@ -47,6 +47,10 @@ public class Hood extends SubsystemBase {
     private static final double kCruiseVelocityRPS = 20.0; // rotations per second
     private static final double kAccelerationRPSPerSec = 40.0;
 
+    // Gravity feedforward to hold the hood in place (tune this value based on your hood weight)
+    // Start with 0.5V and adjust up if hood sags, down if it climbs when idle
+    private static final double kGravityFeedforwardVolts = 0.8;
+
     private final TalonFX motor;
 
     // Tunable hood angle band for distance-based aiming
@@ -97,7 +101,9 @@ public class Hood extends SubsystemBase {
         // Convert hood angle (deg) to motor rotations
         double targetMotorRotations = targetAngleDeg * kMotorRotationsPerHoodDegree;
 
-        MotionMagicVoltage request = new MotionMagicVoltage(targetMotorRotations);
+        // Use MotionMagic with gravity feedforward to prevent hood sag
+        MotionMagicVoltage request = new MotionMagicVoltage(targetMotorRotations)
+            .withFeedForward(kGravityFeedforwardVolts);
         motor.setControl(request);
     }
 
@@ -180,6 +186,13 @@ public class Hood extends SubsystemBase {
         currentAngleDeg = motorRotations / kMotorRotationsPerHoodDegree;
 
         return MathUtil.isNear(targetAngleDeg, currentAngleDeg, kPositionToleranceDegrees);
+    }
+
+    /**
+     * Returns the current target hood angle in degrees.
+     */
+    public double getTargetAngleDegrees() {
+        return targetAngleDeg;
     }
 
     @Override
