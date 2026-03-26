@@ -72,7 +72,7 @@ public class RobotContainer {
     );
 
     // Initialize Haptics
-    Haptics.initialize(driver, aux);
+    //Haptics.initialize(driver, aux);
 
     configureBindings();
   }
@@ -88,7 +88,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("spinUpShooter", shooter.spinUpCommand(3000));
     NamedCommands.registerCommand("shoot",
         Commands.parallel(
-            Commands.run(() -> shooter.setRPM(5000), shooter),
+            Commands.run(() -> shooter.setRPM(1500), shooter),
             Commands.waitSeconds(0.5).andThen(feeder.feedCommand()),
             Commands.waitSeconds(0.25).andThen(floor.feedCommand()),
             Commands.waitSeconds(2).andThen(intake.slowHomeCommand())
@@ -141,10 +141,10 @@ public class RobotContainer {
     return swerve;
   }
 
-  Trigger pulseTrigger = new Trigger(() -> GameState.shouldRumble())
+/*   Trigger pulseTrigger = new Trigger(() -> GameState.shouldRumble())
     .onTrue(Commands.runOnce(() -> {
       Haptics.getInstance().pulse(3, 1, 1);
-    }));
+    })); */
 
   // TODO: Investigate need of methods below
   /** Returns the driver controller HID so Robot can set rumble. */

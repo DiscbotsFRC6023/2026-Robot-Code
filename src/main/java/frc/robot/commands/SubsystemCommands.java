@@ -108,10 +108,9 @@ public final class SubsystemCommands {
     public Command shootManually() {
         return shooter.dashboardSpinUpCommand()
             .andThen(
-                Commands.waitSeconds(0.5),
+                Commands.waitSeconds(0.75),
                 Commands.parallel(
-                    feed(),
-                    intake.agitateCommand()
+                    feed()
                 ))
             .handleInterrupt(() -> shooter.stop());
     }
@@ -144,7 +143,7 @@ public final class SubsystemCommands {
             Commands.parallel(
                 feeder.feedCommand(),
                 Commands.waitSeconds(0.125)
-                    .andThen(floor.feedCommand().alongWith(intake.slowHomeCommand()))
+                    .andThen(floor.feedCommand().alongWith(intake.agitateCommand()))
             )
         );
     }
