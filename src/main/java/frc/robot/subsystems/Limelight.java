@@ -14,7 +14,6 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 
@@ -22,8 +21,6 @@ public class Limelight extends SubsystemBase {
     private final String name;
     private final NetworkTable telemetryTable;
     private final StructPublisher<Pose2d> posePublisher;
-    
-    private double lastDistanceFeet = 0.0;
 
     /** Camera mounting info. */
     private static final double CAMERA_PITCH_DEGREES = 28.1;
@@ -128,8 +125,6 @@ public class Limelight extends SubsystemBase {
         final double distanceFeet = Units.metersToFeet(distanceMeters);
         final double yawRadians = Math.atan2(robotY, robotX);
 
-        this.lastDistanceFeet = distanceFeet;
-
         telemetryTable.getEntry("Tag Distance (m)").setDouble(distanceMeters);
         telemetryTable.getEntry("Tag Distance (ft)").setDouble(distanceFeet);
         telemetryTable.getEntry("Tag Yaw (deg)").setDouble(Math.toDegrees(yawRadians));
@@ -153,12 +148,5 @@ public class Limelight extends SubsystemBase {
             this.poseEstimate = poseEstimate;
             this.standardDeviations = standardDeviations;
         }
-    }
-
-    @Override
-    public void periodic() {
-        // Update the SmartDashboard with the last known distance
-        // Only update if a tag has been detected at least once
-        SmartDashboard.putNumber("Limelight Distance (ft)", lastDistanceFeet);
     }
 }

@@ -49,9 +49,9 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
-        HOMED(-10),
-        STOWED(-63),
-        INTAKE(-63),
+        HOMED(0),
+        STOWED(-55),
+        INTAKE(-55),
         AGITATE(-45);
         
         private final double degrees;
@@ -217,7 +217,7 @@ public class Intake extends SubsystemBase {
     }
 
     public void handleLeftBumperPress(boolean isLeftBumperPressed) {
-        if (isLeftBumperPressed && pivotMotor.getPosition().getValue().in(Degrees) < -45) {
+        if (isLeftBumperPressed && pivotMotor.getPosition().getValue().in(Degrees) < 15) {
             set(Position.HOMED);
         }
     }
