@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.SubsystemCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -24,6 +25,7 @@ import frc.robot.subsystems.Align;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Quest;
 import frc.robot.subsystems.Shooter;
+import frc.robot.utils.*;
 
 public class RobotContainer {
   /* Controllers */
@@ -68,6 +70,9 @@ public class RobotContainer {
         )
 
     );
+
+    // Initialize Haptics
+    Haptics.initialize(driver, aux);
 
     configureBindings();
   }
@@ -136,6 +141,12 @@ public class RobotContainer {
     return swerve;
   }
 
+  Trigger pulseTrigger = new Trigger(() -> GameState.shouldRumble())
+    .onTrue(Commands.runOnce(() -> {
+      Haptics.getInstance().pulse(3, 1, 1);
+    }));
+
+  // TODO: Investigate need of methods below
   /** Returns the driver controller HID so Robot can set rumble. */
   public GenericHID getDriverController() {
     return driver.getHID();
