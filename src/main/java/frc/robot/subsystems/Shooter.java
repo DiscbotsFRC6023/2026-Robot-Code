@@ -100,6 +100,10 @@ public class Shooter extends SubsystemBase {
         setPercentOutput(0.0);
     }
 
+    public void setDashboardTargetRPM(double rpm) {
+        this.dashboardTargetRPM = rpm;
+    }
+
     public Command spinUpCommand(double rpm) {
         return runOnce(() -> setRPM(rpm))
             .andThen(Commands.waitUntil(this::isVelocityWithinTolerance));

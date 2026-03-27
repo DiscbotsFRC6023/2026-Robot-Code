@@ -123,11 +123,24 @@ public class RobotContainer {
     /* X button → zero gyro heading */
     driver.x().onTrue(SubsystemCommands.zeroGyro(swerve));
 
+    /* Right trigger → slow mode (30% speed) */
+    driver.rightTrigger().whileTrue(
+        SubsystemCommands.teleopDriveSlow(
+            swerve,
+            () -> -driver.getLeftY(),
+            () -> -driver.getLeftX(),
+            () -> -driver.getRightX()
+        )
+    );
+
     /* ── Aux (port 1) – mechanisms ── */
     aux.rightBumper().whileTrue(subsystemCommands.shootManually());
     aux.rightTrigger().whileTrue(subsystemCommands.limelightAimAndShoot());
     aux.leftTrigger().whileTrue(intake.intakeCommand());
     aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
+    
+    /* Y button → shoot with RPM based on distance from AprilTag */
+    aux.y().whileTrue(subsystemCommands.shootByDistance());
   }
 
   public Command getAutonomousCommand() {
