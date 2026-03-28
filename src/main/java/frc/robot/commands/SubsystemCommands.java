@@ -106,12 +106,16 @@ public final class SubsystemCommands {
     }
 
     public Command shootManually() {
-        return shooter.spinUpCommand(1500.0)
+        final Command lockSwerve = swerve.xStanceCommand();
+
+        final Command shootAndFeed = shooter.spinUpCommand(1500.0)
             .andThen(
                 Commands.waitSeconds(0.75),
                 Commands.parallel(
                     feed()
-                ))
+                ));
+
+        return Commands.deadline(shootAndFeed, lockSwerve)
             .handleInterrupt(() -> shooter.stop());
     }
 

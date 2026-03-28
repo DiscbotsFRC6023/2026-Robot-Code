@@ -89,10 +89,10 @@ public class RobotContainer {
     NamedCommands.registerCommand("shoot",
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(1500), shooter),
-            Commands.waitSeconds(0.75).andThen(feeder.feedCommand()),
-            Commands.waitSeconds(0.75).andThen(floor.feedCommand()),
-            Commands.waitSeconds(0.5).andThen(intake.agitateCommand())
-        ).withTimeout(6).finallyDo(() -> shooter.stop()));
+            Commands.waitSeconds(1.5).andThen(feeder.feedCommand()),
+            Commands.waitSeconds(1.5).andThen(floor.feedCommand()),
+            Commands.waitSeconds(1.5).andThen(intake.agitateCommand())
+        ).withTimeout(7).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("shootshort",
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(1750), shooter),

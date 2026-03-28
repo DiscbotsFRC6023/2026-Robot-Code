@@ -40,6 +40,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.FieldCentric m_fieldCentric = new SwerveRequest.FieldCentric();
     private final SwerveRequest.RobotCentric m_robotCentric = new SwerveRequest.RobotCentric();
     private final SwerveRequest.Idle m_idle = new SwerveRequest.Idle();
+    private final SwerveRequest.SwerveDriveBrake m_brake = new SwerveRequest.SwerveDriveBrake();
 
     public CommandSwerveDrivetrain(
         SwerveDrivetrainConstants drivetrainConstants,
@@ -145,6 +146,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
     public void stop() {
         setControl(m_idle);
+    }
+
+    /**
+     * Locks the swerve modules in an "X" to resist pushing.
+     * Runs continuously until another drive request is applied.
+     */
+    public Command xStanceCommand() {
+        return applyRequest(() -> m_brake).withName("Swerve X Stance");
     }
 
     // ======================== GETTERS ========================
