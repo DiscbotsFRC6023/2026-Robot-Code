@@ -23,9 +23,9 @@ public class Limelight extends SubsystemBase {
     private final StructPublisher<Pose2d> posePublisher;
 
     /** Camera mounting info. */
-    private static final double CAMERA_PITCH_DEGREES = 28.1;
-    private static final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(22.32);
-    private static final double CAMERA_LATERAL_OFFSET_METERS = Units.inchesToMeters(5.74); // +Y is left of robot
+    //private static final double CAMERA_PITCH_DEGREES = 28.1;
+    //private static final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(22.32);
+    //private static final double CAMERA_LATERAL_OFFSET_METERS = Units.inchesToMeters(5.74); // +Y is left of robot
 
     /** Red alliance: aim at tag 10 (9 and 10 are side-by-side). */
     private static final int RED_TARGET_TAG_ID = 10;
@@ -41,15 +41,15 @@ public class Limelight extends SubsystemBase {
         this.posePublisher = telemetryTable.getStructTopic("Estimated Robot Pose", Pose2d.struct).publish();
 
         // Tell Limelight where the camera is on the robot so pose solves are correct.
-        LimelightHelpers.setCameraPose_RobotSpace(
-            name,
-            0.0,                              // forward offset (unknown/assumed 0)
-            CAMERA_LATERAL_OFFSET_METERS,     // left of robot center
-            CAMERA_HEIGHT_METERS,             // height from carpet to lens
-            0.0,                              // roll
-            CAMERA_PITCH_DEGREES,             // pitch up
-            0.0                               // yaw
-        );
+        // LimelightHelpers.setCameraPose_RobotSpace(
+        //     name,
+        //     0.0,                              // forward offset (unknown/assumed 0)
+        //     //CAMERA_LATERAL_OFFSET_METERS,     // left of robot center
+        //     //CAMERA_HEIGHT_METERS,             // height from carpet to lens
+        //     0.0,                              // roll
+        //     //CAMERA_PITCH_DEGREES,             // pitch up
+        //     0.0                               // yaw
+        // );
     }
 
     /**
@@ -119,7 +119,8 @@ public class Limelight extends SubsystemBase {
 
         // Shift from camera origin to robot origin using the known lateral offset (no yaw offset assumed)
         final double robotX = cameraX;
-        final double robotY = cameraY + CAMERA_LATERAL_OFFSET_METERS;
+        //final double robotY = cameraY + CAMERA_LATERAL_OFFSET_METERS;
+        final double robotY = cameraY;
 
         final double distanceMeters = Math.hypot(robotX, robotY);
         final double distanceFeet = Units.metersToFeet(distanceMeters);
