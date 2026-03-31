@@ -88,11 +88,11 @@ public class RobotContainer {
     NamedCommands.registerCommand("spinUpShooter", shooter.spinUpCommand(3000));
     NamedCommands.registerCommand("shoot",
         Commands.parallel(
-            Commands.run(() -> shooter.setRPM(1500), shooter),
-            Commands.waitSeconds(1.5).andThen(feeder.feedCommand()),
-            Commands.waitSeconds(1.5).andThen(floor.feedCommand()),
-            Commands.waitSeconds(1.5).andThen(intake.agitateCommand())
-        ).withTimeout(7).finallyDo(() -> shooter.stop()));
+            Commands.run(() -> shooter.setRPM(1400), shooter),
+            Commands.waitSeconds(3).andThen(feeder.feedCommand()),
+            Commands.waitSeconds(3).andThen(floor.feedCommand()),
+            Commands.waitSeconds(3).andThen(intake.agitateCommand())
+        ).withTimeout(8).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("shootshort",
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(1750), shooter),
@@ -119,6 +119,9 @@ public class RobotContainer {
 
   private void configureBindings() {
     /* ── Driver (port 0) – swerve only ── */
+
+    /* B button → brake/lock wheels */
+    driver.b().whileTrue(swerve.xStanceCommand());
 
     /* Back button → zero gyro heading */
     driver.back().onTrue(SubsystemCommands.zeroGyro(swerve));
