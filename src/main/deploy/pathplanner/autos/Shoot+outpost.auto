@@ -1,0 +1,56 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "HubToShoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shootshort"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "ShootToOutpost"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "intake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "OutpostToShoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
