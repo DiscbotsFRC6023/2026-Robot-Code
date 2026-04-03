@@ -24,10 +24,9 @@ public final class Constants {
 
     public static class Feeder {
         public static final double intakeSpeed = 1;
-<<<<<<< HEAD
+
         public static final int ID_feederMotor = 0; // TODO: SET THE CAN ID
-=======
->>>>>>> main
+
     }
 
     public static class Swerve {
@@ -39,7 +38,7 @@ public final class Constants {
         /* Teleop Drive Multipliers */
         public static final double TELEOP_DRIVE_SPEED_MULTIPLIER = 1.0;
         public static final double TELEOP_ROTATION_SPEED_MULTIPLIER = 1.0;
-<<<<<<< HEAD
+
 
         /*
          * ==================== MODULE-SPECIFIC CONSTANTS ====================
@@ -70,8 +69,7 @@ public final class Constants {
         public static final int BR_ANGLE_MOTOR_ID = 8;
         public static final int BR_CANCODER_ID = 4;
         public static final double BR_ANGLE_OFFSET = 0.0; // TODO: Set with Phoenix Tuner X
-=======
->>>>>>> main
+
     }
 
     public static class Limelight {
