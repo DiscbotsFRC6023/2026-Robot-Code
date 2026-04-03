@@ -6,23 +6,25 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.subsystems.Swerve;
+import frc.robot.Landmarks;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Limelight;
 
 /**
  * Drives the robot using manual translation inputs while automatically
  * rotating to face a target position on the field (e.g. the hub / speaker).
  * Uses PID-controlled heading with our custom Swerve subsystem.
+ * Uses Limelight for AprilTag-based pose estimation.
  */
 public class AimAndDriveCommand extends Command {
     /** Aim tolerance in degrees — if within this, {@link #isAimed()} returns true. */
     private static final double AIM_TOLERANCE_DEG = 5.0;
 
-    /** Field-relative target position to aim at (meters). Adjust for your game. */
-    private static final Translation2d TARGET_POSITION = new Translation2d(0.0, 0.0); // TODO: set to actual target
-
-    private final Swerve swerve;
+    private final CommandSwerveDrivetrain swerve;
+    private final Limelight limelight;
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
 
@@ -31,11 +33,13 @@ public class AimAndDriveCommand extends Command {
     private Rotation2d targetHeading = new Rotation2d();
 
     public AimAndDriveCommand(
-        Swerve swerve,
+        CommandSwerveDrivetrain swerve,
+        Limelight limelight,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
     ) {
         this.swerve = swerve;
+        this.limelight = limelight;
         this.forwardInput = forwardInput;
         this.leftInput = leftInput;
 
@@ -47,8 +51,8 @@ public class AimAndDriveCommand extends Command {
         addRequirements(swerve);
     }
 
-    public AimAndDriveCommand(Swerve swerve) {
-        this(swerve, () -> 0, () -> 0);
+    public AimAndDriveCommand(CommandSwerveDrivetrain swerve, Limelight limelight) {
+        this(swerve, limelight, () -> 0, () -> 0);
     }
 
     /**
@@ -63,10 +67,27 @@ public class AimAndDriveCommand extends Command {
 
     /**
      * Computes the field-relative direction from the robot to the target.
+     * Uses Limelight pose estimate if available, otherwise falls back to landmark position.
      */
     private Rotation2d getDirectionToTarget() {
         Translation2d robotPosition = swerve.getPose().getTranslation();
-        return TARGET_POSITION.minus(robotPosition).getAngle();
+        
+        // Try to get updated pose from Limelight for better AprilTag-based alignment
+        var measurement = limelight.getMeasurement(swerve.getPose());
+        if (measurement.isPresent()) {
+            // Feed the vision measurement back into the pose estimator so the swerve heading stays accurate
+            swerve.addVisionMeasurement(
+                measurement.get().poseEstimate.pose,
+                measurement.get().poseEstimate.timestampSeconds,
+                measurement.get().standardDeviations
+            );
+            robotPosition = measurement.get().poseEstimate.pose.getTranslation();
+            SmartDashboard.putBoolean("AimAndDrive/UsingLimelight", true);
+        } else {
+            SmartDashboard.putBoolean("AimAndDrive/UsingLimelight", false);
+        }
+        
+        return Landmarks.hubPosition().minus(robotPosition).getAngle();
     }
 
     @Override
@@ -97,7 +118,9 @@ public class AimAndDriveCommand extends Command {
             -Constants.Swerve.MAX_ANGULAR_VELOCITY,
              Constants.Swerve.MAX_ANGULAR_VELOCITY);
 
-        swerve.drive(translationX, translationY, rotationOutput, true, true);
+        swerve.drive(translationX, translationY, rotationOutput, true);
+
+        SmartDashboard.putNumber("AimAndDrive/HeadingError", Math.toDegrees(targetHeading.getRadians() - currentYawRad));
     }
 
     @Override

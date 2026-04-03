@@ -1,0 +1,64 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.243,
+        "y": 3.718
+      },
+      "prevControl": null,
+      "nextControl": {
+<<<<<<<< HEAD:src/main/deploy/pathplanner/paths/HubToClimb.path
+        "x": 2.052132530120482,
+        "y": 3.6743855421686753
+========
+  "x": 6.327808948863637,
+  "y": 6.072408336292614
+>>>>>>>> 3a62cfabd6e3f022115e13385326186ece5e6f58:src/main/deploy/pathplanner/paths/Bump Shoot 1.path
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.8282289156626503,
+        "y": 3.718
+      },
+      "prevControl": {
+        "x": 1.9209999999999998,
+        "y": 3.707168674698795
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 0.009535192358685655
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+<<<<<<<< HEAD:src/main/deploy/pathplanner/paths/HubToClimb.path
+    "velocity": 0,
+    "rotation": 0.0
+========
+  "velocity": 0,
+  "rotation": -92.34991114937384
+>>>>>>>> 3a62cfabd6e3f022115e13385326186ece5e6f58:src/main/deploy/pathplanner/paths/Bump Shoot 1.path
+  },
+  "useDefaultConstraints": true
+}

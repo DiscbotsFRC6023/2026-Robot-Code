@@ -35,7 +35,7 @@ import frc.robot.Ports;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.8);
+        INTAKE(0.80);
 
         private final double percentOutput;
 
@@ -49,11 +49,11 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
-        HOMED(110),
-        STOWED(100),
-        INTAKE(-4),
-        AGITATE(20);
-
+        HOMED(0),
+        STOWED(0),
+        INTAKE(-55),
+        AGITATE(-35);
+        
         private final double degrees;
 
         private Position(double degrees) {
@@ -77,7 +77,7 @@ public class Intake extends SubsystemBase {
     private boolean isHomed = false;
 
     public Intake() {
-        pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kCANivoreCANBus);
+        pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kRoboRioCANBus);
         rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
         configurePivotMotor();
         configureRollerMotor();
@@ -88,7 +88,7 @@ public class Intake extends SubsystemBase {
         final TalonFXConfiguration config = new TalonFXConfiguration()
             .withMotorOutput(
                 new MotorOutputConfigs()
-                    .withInverted(InvertedValue.CounterClockwise_Positive)
+                    .withInverted(InvertedValue.Clockwise_Positive)
                     .withNeutralMode(NeutralModeValue.Brake)
             )
             .withCurrentLimits(
@@ -173,20 +173,33 @@ public class Intake extends SubsystemBase {
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.INTAKE))
-            .andThen(
-                Commands.sequence(
-                    runOnce(() -> set(Position.AGITATE)),
-                    Commands.waitUntil(this::isPositionWithinTolerance),
-                    runOnce(() -> set(Position.INTAKE)),
-                    Commands.waitUntil(this::isPositionWithinTolerance)
-                )
-                .repeatedly()
-            )
-            .handleInterrupt(() -> {
-                set(Position.INTAKE);
-                set(Speed.STOP);
-            });
+        return Commands.sequence(
+            Commands.runOnce(() -> set(Position.AGITATE), this),
+            Commands.waitUntil(this::isPositionWithinTolerance),
+            Commands.runOnce(() -> set(Position.INTAKE), this),
+            Commands.waitUntil(this::isPositionWithinTolerance)
+        ).repeatedly()
+        .until(() -> false);
+    }
+
+    /**
+     * Slowly moves the intake pivot to the home position.
+     * Stops the rollers when interrupted.
+     */
+    public Command slowHomeCommand() {
+        return runOnce(() -> {
+            set(Speed.STOP);
+            setPivotPercentOutput(0.03);
+        })
+        .andThen(Commands.waitUntil(() -> pivotMotor.getPosition().getValue().in(Degrees) >= Position.HOMED.degrees - 5))
+        .andThen(runOnce(() -> {
+            set(Position.HOMED);
+            setPivotPercentOutput(0);
+        }))
+        .handleInterrupt(() -> {
+            set(Position.HOMED);
+            set(Speed.STOP);
+        });
     }
 
     public Command homingCommand() {
@@ -201,6 +214,12 @@ public class Intake extends SubsystemBase {
         )
         .unless(() -> isHomed)
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
+    }
+
+    public void handleLeftBumperPress(boolean isLeftBumperPressed) {
+        if (isLeftBumperPressed && pivotMotor.getPosition().getValue().in(Degrees) < 15) {
+            set(Position.HOMED);
+        }
     }
 
     @Override
