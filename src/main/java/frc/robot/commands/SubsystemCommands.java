@@ -142,8 +142,9 @@ public final class SubsystemCommands {
         return Commands.sequence(
             Commands.parallel(
                 feeder.feedCommand(),
+                floor.feedCommand(),
                 Commands.waitSeconds(0.125)
-                    .andThen(floor.feedCommand().alongWith(intake.agitateCommand()))
+                    .andThen(intake.slowHomeCommand())
             )
         );
     }
