@@ -115,11 +115,21 @@ public final class SubsystemCommands {
             .handleInterrupt(() -> shooter.stop());
     }
 
+    public Command ferry() {
+        return shooter.spinUpCommand(2000.0)
+            .andThen(
+                Commands.waitSeconds(0),
+                Commands.parallel(
+                    feed()
+                ))
+            .handleInterrupt(() -> shooter.stop());
+    }
+
     /** Align to the alliance speaker tag using Limelight and shoot while held. */
     public Command limelightAimAndShoot() {
         final Command alignCommand = align.alignCommand();
 
-        final Command spinUpShooter = shooter.spinUpCommand(3000);
+        final Command spinUpShooter = shooter.spinUpCommand(1500);
 
         final Command feedWhenReady = Commands.sequence(
             Commands.waitUntil(() -> align.isAligned() && shooter.isVelocityWithinTolerance()),
@@ -133,7 +143,7 @@ public final class SubsystemCommands {
         return Commands.parallel(
             alignCommand,
             spinUpShooter,
-            intake.slowHomeCommand(),
+            Commands.waitSeconds(4).andThen(intake.slowHomeCommand()),
             feedWhenReady
         ).finallyDo(() -> shooter.stop());
     }

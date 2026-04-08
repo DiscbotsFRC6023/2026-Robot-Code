@@ -183,14 +183,19 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * Moves the intake pivot to the home position and stops the rollers.
+     * Cycles the intake: home -> wait 2s -> intake -> wait 2s -> repeat
      */
     public Command slowHomeCommand() {
-        return runOnce(() -> {
-            set(Speed.STOP);
-            setPivotPercentOutput(0.50);
-            set(Position.HOMED);
-        });
+        return Commands.sequence(
+            Commands.runOnce(() -> {
+                set(Speed.STOP);
+                setPivotPercentOutput(1);
+                set(Position.HOMED);
+            }),
+            Commands.waitSeconds(2),
+            Commands.runOnce(() -> set(Position.INTAKE)),
+            Commands.waitSeconds(0.5)
+        ).repeatedly();
     }
 
     public Command homingCommand() {

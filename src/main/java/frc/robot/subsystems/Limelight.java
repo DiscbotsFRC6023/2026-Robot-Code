@@ -124,7 +124,11 @@ public class Limelight extends SubsystemBase {
 
         final double distanceMeters = Math.hypot(robotX, robotY);
         final double distanceFeet = Units.metersToFeet(distanceMeters);
-        final double yawRadians = Math.atan2(robotY, robotX);
+        // Calculate yaw error relative to robot center
+        // atan2(Y, X) gives angle from X-axis toward Y
+        // Since +Y is left and we want positive yaw to mean "rotate counter-clockwise to face target",
+        // we negate the result to align with robot heading convention
+        final double yawRadians = -Math.atan2(robotY, robotX);
 
         telemetryTable.getEntry("Tag Distance (m)").setDouble(distanceMeters);
         telemetryTable.getEntry("Tag Distance (ft)").setDouble(distanceFeet);
