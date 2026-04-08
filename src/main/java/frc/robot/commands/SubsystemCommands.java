@@ -140,14 +140,16 @@ public final class SubsystemCommands {
 
     private Command feed() {
         return Commands.sequence(
+            Commands.waitSeconds(0.25),
             Commands.parallel(
                 feeder.feedCommand(),
                 floor.feedCommand(),
-                Commands.waitSeconds(0.125)
+                Commands.waitSeconds(4)
                     .andThen(intake.slowHomeCommand())
             )
         );
     }
+
 
     /**
      * Creates the default teleop swerve drive command.

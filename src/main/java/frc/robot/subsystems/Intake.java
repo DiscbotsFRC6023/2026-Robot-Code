@@ -49,10 +49,10 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
-        HOMED(0),
-        STOWED(0),
-        INTAKE(-55),
-        AGITATE(-35);
+        HOMED(15),
+        STOWED(15),
+        INTAKE(-50),
+        AGITATE(-10);
         
         private final double degrees;
 
@@ -183,28 +183,19 @@ public class Intake extends SubsystemBase {
     }
 
     /**
-     * Slowly moves the intake pivot to the home position.
-     * Stops the rollers when interrupted.
+     * Moves the intake pivot to the home position and stops the rollers.
      */
     public Command slowHomeCommand() {
         return runOnce(() -> {
             set(Speed.STOP);
-            setPivotPercentOutput(0.03);
-        })
-        .andThen(Commands.waitUntil(() -> pivotMotor.getPosition().getValue().in(Degrees) >= Position.HOMED.degrees - 5))
-        .andThen(runOnce(() -> {
+            setPivotPercentOutput(0.50);
             set(Position.HOMED);
-            setPivotPercentOutput(0);
-        }))
-        .handleInterrupt(() -> {
-            set(Position.HOMED);
-            set(Speed.STOP);
         });
     }
 
     public Command homingCommand() {
         return Commands.sequence(
-            runOnce(() -> setPivotPercentOutput(0.1)),
+            runOnce(() -> setPivotPercentOutput(1)),
             Commands.waitUntil(() -> pivotMotor.getSupplyCurrent().getValue().in(Amps) > 6),
             runOnce(() -> {
                 pivotMotor.setPosition(Position.HOMED.angle());
