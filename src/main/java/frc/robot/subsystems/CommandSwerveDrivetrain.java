@@ -193,6 +193,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
     public void resetOdometry(Pose2d pose) {
         resetPose(pose);
+        quest.setPose(pose);
     }
 
     // ======================== COMMAND FACTORY ========================

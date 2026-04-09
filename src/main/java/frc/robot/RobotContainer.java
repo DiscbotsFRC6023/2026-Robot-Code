@@ -89,7 +89,7 @@ public class RobotContainer {
             Commands.run(() -> shooter.setRPM(1400), shooter),
             Commands.waitSeconds(3).andThen(feeder.feedCommand()),
             Commands.waitSeconds(3).andThen(floor.feedCommand()),
-            Commands.waitSeconds(3).andThen(intake.agitateCommand())
+            Commands.waitSeconds(3).andThen(intake.slowHomeCommand())
         ).withTimeout(8).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("shootshort",
         Commands.parallel(
@@ -142,7 +142,7 @@ public class RobotContainer {
     /* ── Aux (port 1) – mechanisms ── */
     aux.rightBumper().whileTrue(subsystemCommands.shootManually());
     aux.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
-    aux.leftTrigger().whileTrue(intake.intakeCommand());
+    driver.leftTrigger().whileTrue(intake.intakeCommand());
     aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
     
     /* Y button → shoot with RPM based on distance from AprilTag */
