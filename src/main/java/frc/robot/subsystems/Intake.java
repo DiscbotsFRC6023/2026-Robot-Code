@@ -162,15 +162,24 @@ public class Intake extends SubsystemBase {
         );
     }
 
+    public void setRollerPercentOutput(double percentOutput) {
+        rollerMotor.setControl(
+            rollerVoltageRequest
+                .withOutput(Volts.of(percentOutput * 12.0))
+        );
+    }
+
     public Command intakeCommand() {
         return startEnd(
             () -> {
+                setPivotPercentOutput(0.05);
                 set(Position.INTAKE);
                 set(Speed.INTAKE);
             },
             () -> set(Speed.STOP)
         );
     }
+
 
     public Command agitateCommand() {
         return Commands.sequence(
@@ -189,7 +198,7 @@ public class Intake extends SubsystemBase {
         return Commands.sequence(
             Commands.runOnce(() -> {
                 set(Speed.STOP);
-                setPivotPercentOutput(1);
+                setPivotPercentOutput(0.9);
                 set(Position.HOMED);
             }),
             Commands.waitSeconds(2),
