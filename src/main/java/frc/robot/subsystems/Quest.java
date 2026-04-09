@@ -20,7 +20,7 @@ public class Quest extends SubsystemBase {
   private final Field2d questField = new Field2d();
 
   // Tunables
-  private double offsetX = -0.305;
+  private double offsetX = -0.600;
   private double offsetY = 0.0;
   private double offsetRotationDeg = 180.0;
 

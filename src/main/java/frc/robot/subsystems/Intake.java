@@ -19,6 +19,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -35,7 +36,7 @@ import frc.robot.Ports;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.80);
+        INTAKE(0.90);
 
         private final double percentOutput;
 
@@ -49,10 +50,10 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
-        HOMED(50),
-        STOWED(50),
-        INTAKE(-100),
-        AGITATE(-0);
+        HOMED(-33),
+        STOWED(-33),
+        INTAKE(-52),
+        AGITATE(-50);
         
         private final double degrees;
 

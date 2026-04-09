@@ -7,12 +7,14 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.Swerve;
 import frc.robot.commands.SubsystemCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -129,6 +131,8 @@ public class RobotContainer {
     /* X button → zero gyro heading */
     driver.x().onTrue(SubsystemCommands.zeroGyro(swerve));
 
+    /* Y button reset pose */
+   
     /* Right trigger → slow mode (30% speed) */
     driver.rightTrigger().whileTrue(
         SubsystemCommands.teleopDriveSlow(
@@ -142,7 +146,7 @@ public class RobotContainer {
     /* ── Aux (port 1) – mechanisms ── */
     aux.rightBumper().whileTrue(subsystemCommands.shootManually());
     aux.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
-    driver.leftTrigger().whileTrue(intake.intakeCommand());
+    aux.leftTrigger().whileTrue(intake.intakeCommand());
     aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
     
     /* Y button → shoot with RPM based on distance from AprilTag */
