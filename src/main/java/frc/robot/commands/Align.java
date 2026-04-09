@@ -11,21 +11,18 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Landmarks;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Quest;
 
 /**
  * Drives the robot using manual translation inputs while automatically
- * rotating to face a target position on the field (e.g. the hub / speaker).
- * Uses PID-controlled heading with our custom Swerve subsystem.
- * Uses Limelight for AprilTag-based pose estimation when available, falls back to Quest.
+ * rotating to face an alignment target position on the field.
+ * Uses Quest for pose estimation.
  */
-public class AimAndDriveCommand extends Command {
+public class Align extends Command {
     /** Aim tolerance in degrees — if within this, {@link #isAimed()} returns true. */
     private static final double AIM_TOLERANCE_DEG = 5.0;
 
     private final CommandSwerveDrivetrain swerve;
-    private final Limelight limelight;
     private final Quest quest;
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
@@ -34,15 +31,13 @@ public class AimAndDriveCommand extends Command {
 
     private Rotation2d targetHeading = new Rotation2d();
 
-    public AimAndDriveCommand(
+    public Align(
         CommandSwerveDrivetrain swerve,
-        Limelight limelight,
         Quest quest,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
     ) {
         this.swerve = swerve;
-        this.limelight = limelight;
         this.quest = quest;
         this.forwardInput = forwardInput;
         this.leftInput = leftInput;
@@ -56,8 +51,8 @@ public class AimAndDriveCommand extends Command {
         addRequirements(swerve);
     }
 
-    public AimAndDriveCommand(CommandSwerveDrivetrain swerve, Limelight limelight, Quest quest) {
-        this(swerve, limelight, quest, () -> 0, () -> 0);
+    public Align(CommandSwerveDrivetrain swerve, Quest quest) {
+        this(swerve, quest, () -> 0, () -> 0);
     }
 
     /**
@@ -71,35 +66,33 @@ public class AimAndDriveCommand extends Command {
     }
 
     /**
-     * Computes the field-relative direction from the robot to the target.
-     * Uses Limelight pose estimate if available, falls back to Quest, then falls back to landmark position.
+     * Computes the field-relative direction from the robot to the alignment target.
+     * The back of the robot faces the target.
+     * Uses Quest pose estimate if available.
      */
     private Rotation2d getDirectionToTarget() {
-        Translation2d robotPosition = swerve.getPose().getTranslation();
-        boolean usingLimelight = false;
+        Translation2d robotPosition;
         boolean usingQuest = false;
-        
-        // Try to get updated pose from Limelight for better AprilTag-based alignment
-        var measurement = limelight.getMeasurement(swerve.getPose());
-        if (measurement.isPresent()) {
-            // Feed the vision measurement back into the pose estimator so the swerve heading stays accurate
-            swerve.addVisionMeasurement(
-                measurement.get().poseEstimate.pose,
-                measurement.get().poseEstimate.timestampSeconds,
-                measurement.get().standardDeviations
-            );
-            robotPosition = measurement.get().poseEstimate.pose.getTranslation();
-            usingLimelight = true;
-        } else if (quest.hasFreshPose()) {
-            // Fall back to Quest if Limelight is not available
+
+        // Get current position from Quest
+        if (quest.hasFreshPose()) {
             robotPosition = quest.getLatestPose().getTranslation();
             usingQuest = true;
+        } else {
+            // Fallback to swerve's internal odometry if Quest data is stale
+            robotPosition = swerve.getPose().getTranslation();
         }
-        
-        SmartDashboard.putBoolean("AimAndDrive/UsingLimelight", usingLimelight);
-        SmartDashboard.putBoolean("AimAndDrive/UsingQuest", usingQuest);
-        
-        return Landmarks.hubPosition().minus(robotPosition).getAngle();
+
+        SmartDashboard.putBoolean("Align/UsingQuest", usingQuest);
+        SmartDashboard.putNumber("Align/RobotX", robotPosition.getX());
+        SmartDashboard.putNumber("Align/RobotY", robotPosition.getY());
+
+        Translation2d targetPosition = Landmarks.alignmentTarget();
+        SmartDashboard.putNumber("Align/TargetX", targetPosition.getX());
+        SmartDashboard.putNumber("Align/TargetY", targetPosition.getY());
+
+        // Add 180 degrees so the back of the robot faces the target
+        return targetPosition.minus(robotPosition).getAngle().plus(new Rotation2d(Math.PI));
     }
 
     @Override
@@ -132,7 +125,7 @@ public class AimAndDriveCommand extends Command {
 
         swerve.drive(translationX, translationY, rotationOutput, true);
 
-        SmartDashboard.putNumber("AimAndDrive/HeadingError", Math.toDegrees(targetHeading.getRadians() - currentYawRad));
+        SmartDashboard.putNumber("Align/HeadingError", Math.toDegrees(targetHeading.getRadians() - currentYawRad));
     }
 
     @Override

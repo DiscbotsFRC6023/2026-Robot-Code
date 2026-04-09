@@ -99,6 +99,11 @@ public class RobotContainer {
         ).withTimeout(3).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("stopShooter", Commands.runOnce(() -> shooter.stop(), shooter));
     NamedCommands.registerCommand("intakeStop", Commands.runOnce(() -> intake.set(Intake.Speed.STOP), intake));
+    
+    // Quest-based path correction commands
+    NamedCommands.registerCommand("resetPoseToQuest", subsystemCommands.resetPoseToQuest());
+    NamedCommands.registerCommand("midPathQuestCorrection", subsystemCommands.midPathQuestCorrection());
+    NamedCommands.registerCommand("questCorrectionGuard", subsystemCommands.questCorrectionGuard().withTimeout(15));
   }
 
   private final SubsystemCommands subsystemCommands = new SubsystemCommands(
@@ -110,6 +115,7 @@ public class RobotContainer {
         hood,
         hanger,
         limelight,
+        quest,
         () -> -driver.getLeftY(),
         () -> -driver.getLeftX()
     );
