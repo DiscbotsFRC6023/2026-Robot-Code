@@ -13,6 +13,7 @@ import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
+import frc.robot.subsystems.Quest;
 import frc.robot.subsystems.Shooter;
 
 public final class SubsystemCommands {
@@ -24,6 +25,7 @@ public final class SubsystemCommands {
     private final Hood hood;
     private final Hanger hanger;
     private final Limelight limelight;
+    private final Quest quest;
 
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
@@ -37,6 +39,7 @@ public final class SubsystemCommands {
         Hood hood,
         Hanger hanger,
         Limelight limelight,
+        Quest quest,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
     ) {
@@ -48,6 +51,7 @@ public final class SubsystemCommands {
         this.hood = hood;
         this.hanger = hanger;
         this.limelight = limelight;
+        this.quest = quest;
 
         this.forwardInput = forwardInput;
         this.leftInput = leftInput;
@@ -61,7 +65,8 @@ public final class SubsystemCommands {
         Shooter shooter,
         Hood hood,
         Hanger hanger,
-        Limelight limelight
+        Limelight limelight,
+        Quest quest
     ) {
         this(
             swerve,
@@ -72,13 +77,14 @@ public final class SubsystemCommands {
             hood,
             hanger,
             limelight,
+            quest,
             () -> 0,
             () -> 0
         );
     }
 
     public Command aimAndShoot() {
-        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, limelight, forwardInput, leftInput);
+        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, limelight, quest, forwardInput, leftInput);
         final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getPose());
         return Commands.parallel(
             aimAndDriveCommand,
@@ -96,6 +102,14 @@ public final class SubsystemCommands {
                 )
             )
         );
+    }
+
+    /**
+     * Command to align the robot to a target position using Quest-based positioning.
+     * Uses manual translation controls while auto-aiming to face the alignment target.
+     */
+    public Command align() {
+        return new Align(swerve, quest, forwardInput, leftInput);
     }
 
     public Command shootManually() {
@@ -182,7 +196,7 @@ public final class SubsystemCommands {
             DoubleSupplier ySupplier,
             DoubleSupplier rotSupplier) {
 
-        final double SLOW_MODE_MULTIPLIER = 0.3;
+        final double SLOW_MODE_MULTIPLIER = 0.5;
 
         return Commands.run(() -> {
             /* Apply deadband */
@@ -209,6 +223,73 @@ public final class SubsystemCommands {
      */
     public static Command zeroGyro(CommandSwerveDrivetrain swerve) {
         return Commands.runOnce(swerve::zeroGyro, swerve).withName("Zero Gyro");
+    }
+
+    /**
+     * Quest-based pose reset command.
+     * Resets the drivetrain pose to the latest Quest pose at the start of autonomous.
+     */
+    public Command resetPoseToQuest() {
+        return Commands.runOnce(() -> {
+            if (quest.hasFreshPose()) {
+                swerve.resetPose(quest.getLatestPose());
+                edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putString("Quest/Status", "Pose Reset to Quest");
+            } else {
+                edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putString("Quest/Status", "Quest pose stale - reset skipped");
+            }
+        }, swerve).withName("Reset Pose to Quest");
+    }
+
+    /**
+     * Quest correction guard command.
+     * Monitors the pose deviation between Quest and swerve odometry during autonomous.
+     * Logs warnings if deviation exceeds threshold.
+     */
+    public Command questCorrectionGuard() {
+        return Commands.run(() -> {
+            if (quest.hasFreshPose()) {
+                var questPose = quest.getLatestPose();
+                var swervePose = swerve.getPose();
+                double positionDeviation = questPose.getTranslation().getDistance(swervePose.getTranslation());
+                double rotationDeviation = Math.abs(questPose.getRotation().getDegrees() - swervePose.getRotation().getDegrees());
+                
+                edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putNumber("Quest/Position Deviation (m)", positionDeviation);
+                edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putNumber("Quest/Rotation Deviation (deg)", rotationDeviation);
+                
+                // Log warning if deviation is too large (>0.5m)
+                if (positionDeviation > 0.5) {
+                    edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putBoolean("Quest/Large Deviation Warning", true);
+                    System.err.println("WARNING: Quest pose deviation > 0.5m: " + positionDeviation + "m");
+                } else {
+                    edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putBoolean("Quest/Large Deviation Warning", false);
+                }
+            }
+        }, swerve).withName("Quest Correction Guard");
+    }
+
+    /**
+     * Mid-path Quest correction command.
+     * If the robot drifts significantly in the Y direction (lateral), corrects pose based on Quest data.
+     * Useful for correcting accumulated odometry drift during autonomous.
+     */
+    public Command midPathQuestCorrection() {
+        return Commands.sequence(
+            Commands.waitUntil(() -> quest.hasFreshPose()),
+            Commands.runOnce(() -> {
+                var questPose = quest.getLatestPose();
+                var swervePose = swerve.getPose();
+                
+                // Only reset if lateral (Y) deviation is significant (>0.3m)
+                double lateralDeviation = Math.abs(questPose.getY() - swervePose.getY());
+                if (lateralDeviation > 0.3) {
+                    swerve.resetPose(questPose);
+                    edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putString("Quest/Status", "Mid-path correction applied");
+                    System.out.println("Mid-path correction: lateral deviation was " + lateralDeviation + "m");
+                } else {
+                    edu.wpi.first.wpilibj.smartdashboard.SmartDashboard.putString("Quest/Status", "Mid-path correction not needed");
+                }
+            }, swerve)
+        ).withTimeout(1).withName("Mid-Path Quest Correction");
     }
 
     // public Command shootByDistance() {

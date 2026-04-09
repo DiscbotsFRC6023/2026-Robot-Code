@@ -16,4 +16,17 @@ public class Landmarks {
         }
         return new Translation2d(Inches.of(469.115), Inches.of(158.845));
     }
+
+    /**
+     * Get the alignment target position based on alliance.
+     * Red Alliance: x=11.928 m, y=4 m
+     * Blue Alliance: x=4.641 m, y=4 m
+     */
+    public static Translation2d alignmentTarget() {
+        final Optional<Alliance> alliance = DriverStation.getAlliance();
+        if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
+            return new Translation2d(4.641, 4.0);
+        }
+        return new Translation2d(11.928, 4.0);
+    }
 }
