@@ -44,7 +44,8 @@ public class AimAndDriveCommand extends Command {
         this.leftInput = leftInput;
 
         // PID controller for rotational heading (input/output in radians)
-        headingController = new PIDController(5.0, 0.0, 0.0);
+        // P-gain tuned for responsive aiming while preventing oscillation
+        headingController = new PIDController(2, 0.0, 0.0);
         headingController.enableContinuousInput(-Math.PI, Math.PI);
         headingController.setTolerance(Math.toRadians(AIM_TOLERANCE_DEG));
 

@@ -12,7 +12,6 @@ import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Align;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 
@@ -25,7 +24,6 @@ public final class SubsystemCommands {
     private final Hood hood;
     private final Hanger hanger;
     private final Limelight limelight;
-    private final Align align;
 
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
@@ -38,7 +36,6 @@ public final class SubsystemCommands {
         Shooter shooter,
         Hood hood,
         Hanger hanger,
-        Align align,
         Limelight limelight,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
@@ -50,7 +47,6 @@ public final class SubsystemCommands {
         this.shooter = shooter;
         this.hood = hood;
         this.hanger = hanger;
-        this.align = align;
         this.limelight = limelight;
 
         this.forwardInput = forwardInput;
@@ -65,7 +61,6 @@ public final class SubsystemCommands {
         Shooter shooter,
         Hood hood,
         Hanger hanger,
-        Align align,
         Limelight limelight
     ) {
         this(
@@ -76,7 +71,6 @@ public final class SubsystemCommands {
             shooter,
             hood,
             hanger,
-            align,
             limelight,
             () -> 0,
             () -> 0
@@ -90,7 +84,6 @@ public final class SubsystemCommands {
             aimAndDriveCommand,
             Commands.waitSeconds(0.25)
                 .andThen(prepareShotCommand),
-            intake.slowHomeCommand(),
             Commands.race(
                 Commands.waitUntil(() -> aimAndDriveCommand.isAimed() && prepareShotCommand.isReadyToShoot()),
                 Commands.waitSeconds(0.75)
@@ -106,7 +99,7 @@ public final class SubsystemCommands {
     }
 
     public Command shootManually() {
-        return shooter.spinUpCommand(1500.0)
+        return shooter.spinUpCommand(1600.0)
             .andThen(
                 Commands.waitSeconds(0.75),
                 Commands.parallel(
@@ -123,29 +116,6 @@ public final class SubsystemCommands {
                     feed()
                 ))
             .handleInterrupt(() -> shooter.stop());
-    }
-
-    /** Align to the alliance speaker tag using Limelight and shoot while held. */
-    public Command limelightAimAndShoot() {
-        final Command alignCommand = align.alignCommand();
-
-        final Command spinUpShooter = shooter.spinUpCommand(1500);
-
-        final Command feedWhenReady = Commands.sequence(
-            Commands.waitUntil(() -> align.isAligned() && shooter.isVelocityWithinTolerance()),
-            Commands.waitSeconds(0.1),
-            Commands.parallel(
-                feeder.feedCommand(),
-                Commands.waitSeconds(0.125).andThen(floor.feedCommand())
-            )
-        );
-
-        return Commands.parallel(
-            alignCommand,
-            spinUpShooter,
-            Commands.waitSeconds(4).andThen(intake.slowHomeCommand()),
-            feedWhenReady
-        ).finallyDo(() -> shooter.stop());
     }
 
     private Command feed() {
@@ -241,44 +211,44 @@ public final class SubsystemCommands {
         return Commands.runOnce(swerve::zeroGyro, swerve).withName("Zero Gyro");
     }
 
-    public Command shootByDistance() {
-        return Commands.runOnce(() -> {
-            var observation = limelight.getTargetObservation();
+    // public Command shootByDistance() {
+    //     return Commands.runOnce(() -> {
+    //         var observation = limelight.getTargetObservation();
             
-            double targetRPM = 1500.0; // Default RPM
+    //         double targetRPM = 1500.0; // Default RPM
             
-            if (observation.isPresent()) {
-                double distanceFeet = observation.get().distanceMeters() / 0.3048; // Convert to feet
+    //         if (observation.isPresent()) {
+    //             double distanceFeet = observation.get().distanceMeters() / 0.3048; // Convert to feet
 
-                // Distance-based RPM lookup table with if-else statements
-                if (distanceFeet <= 4.5) {
-                    targetRPM = 1450.0;
-                } else if (distanceFeet <= 5.5) {
-                    targetRPM = 1500.0;
-                } else if (distanceFeet <= 6.5) {
-                    targetRPM = 1563.0;
-                } else if (distanceFeet <= 7.5) {
-                    targetRPM = 1610.0;
-                } else if (distanceFeet <= 8.5) {
-                    targetRPM = 1658.0;
-                } else if (distanceFeet <= 9.5) {
-                    targetRPM = 1703.0;
-                } else if (distanceFeet <= 10.5) {
-                    targetRPM = 1758.0;
-                } else if (distanceFeet <= 11.5) {
-                    targetRPM = 1815.0;
-                } else if (distanceFeet >= 12.0) {
-                    targetRPM = 1850.0;
-                }
-            }
+    //             // Distance-based RPM lookup table with if-else statements
+    //             if (distanceFeet <= 4.5) {
+    //                 targetRPM = 1450.0;
+    //             } else if (distanceFeet <= 5.5) {
+    //                 targetRPM = 1500.0;
+    //             } else if (distanceFeet <= 6.5) {
+    //                 targetRPM = 1563.0;
+    //             } else if (distanceFeet <= 7.5) {
+    //                 targetRPM = 1610.0;
+    //             } else if (distanceFeet <= 8.5) {
+    //                 targetRPM = 1658.0;
+    //             } else if (distanceFeet <= 9.5) {
+    //                 targetRPM = 1703.0;
+    //             } else if (distanceFeet <= 10.5) {
+    //                 targetRPM = 1758.0;
+    //             } else if (distanceFeet <= 11.5) {
+    //                 targetRPM = 1815.0;
+    //             } else if (distanceFeet >= 12.0) {
+    //                 targetRPM = 1850.0;
+    //             }
+    //         }
             
-            shooter.setDashboardTargetRPM(targetRPM);
-        }).andThen(shooter.dashboardSpinUpCommand())
-            .andThen(
-                Commands.waitSeconds(0.75),
-                Commands.parallel(
-                    feed()
-                ))
-            .handleInterrupt(() -> shooter.stop());
-    }
+    //         shooter.setDashboardTargetRPM(targetRPM);
+    //     }).andThen(shooter.dashboardSpinUpCommand())
+    //         .andThen(
+    //             Commands.waitSeconds(0.75),
+    //             Commands.parallel(
+    //                 feed()
+    //             ))
+    //         .handleInterrupt(() -> shooter.stop());
+    // }
 }

@@ -21,7 +21,6 @@ import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Align;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Quest;
 import frc.robot.subsystems.Shooter;
@@ -42,7 +41,6 @@ public class RobotContainer {
   private final Hood hood = new Hood();
   private final Hanger hanger = new Hanger();
   private final Limelight limelight = new Limelight("limelight");
-  private final Align align = new Align(swerve, limelight);
 
   /* Auto chooser */
   private final SendableChooser<Command> autoChooser;
@@ -111,7 +109,6 @@ public class RobotContainer {
         shooter,
         hood,
         hanger,
-    align,
         limelight,
         () -> -driver.getLeftY(),
         () -> -driver.getLeftX()
@@ -144,12 +141,11 @@ public class RobotContainer {
 
     /* ── Aux (port 1) – mechanisms ── */
     aux.rightBumper().whileTrue(subsystemCommands.shootManually());
-    aux.rightTrigger().whileTrue(subsystemCommands.limelightAimAndShoot());
+    aux.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
     aux.leftTrigger().whileTrue(intake.intakeCommand());
     aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
     
     /* Y button → shoot with RPM based on distance from AprilTag */
-    aux.y().whileTrue(subsystemCommands.shootByDistance());
   }
 
   public Command getAutonomousCommand() {

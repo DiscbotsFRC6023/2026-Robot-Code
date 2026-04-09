@@ -32,7 +32,7 @@ public final class Constants {
 
         /* Teleop Drive Multipliers */
         public static final double TELEOP_DRIVE_SPEED_MULTIPLIER = 1.0;
-        public static final double TELEOP_ROTATION_SPEED_MULTIPLIER = 1.0;
+        public static final double TELEOP_ROTATION_SPEED_MULTIPLIER = 0.7;
     }
 
     public static class Limelight {
