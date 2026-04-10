@@ -72,28 +72,30 @@ public class AimAndDriveCommand extends Command {
 
     /**
      * Computes the field-relative direction from the robot to the target.
-     * Uses Limelight pose estimate if available, falls back to Quest, then falls back to landmark position.
+     * Uses Quest pose estimate if available, falls back to Limelight, then falls back to landmark position.
      */
     private Rotation2d getDirectionToTarget() {
         Translation2d robotPosition = swerve.getPose().getTranslation();
         boolean usingLimelight = false;
         boolean usingQuest = false;
         
-        // Try to get updated pose from Limelight for better AprilTag-based alignment
-        var measurement = limelight.getMeasurement(swerve.getPose());
-        if (measurement.isPresent()) {
-            // Feed the vision measurement back into the pose estimator so the swerve heading stays accurate
-            swerve.addVisionMeasurement(
-                measurement.get().poseEstimate.pose,
-                measurement.get().poseEstimate.timestampSeconds,
-                measurement.get().standardDeviations
-            );
-            robotPosition = measurement.get().poseEstimate.pose.getTranslation();
-            usingLimelight = true;
-        } else if (quest.hasFreshPose()) {
-            // Fall back to Quest if Limelight is not available
+        // Try to get updated pose from Quest first for more reliable alignment
+        if (quest.hasFreshPose()) {
             robotPosition = quest.getLatestPose().getTranslation();
             usingQuest = true;
+        } else {
+            // Fall back to Limelight if Quest is not available
+            var measurement = limelight.getMeasurement(swerve.getPose());
+            if (measurement.isPresent()) {
+                // Feed the vision measurement back into the pose estimator so the swerve heading stays accurate
+                swerve.addVisionMeasurement(
+                    measurement.get().poseEstimate.pose,
+                    measurement.get().poseEstimate.timestampSeconds,
+                    measurement.get().standardDeviations
+                );
+                robotPosition = measurement.get().poseEstimate.pose.getTranslation();
+                usingLimelight = true;
+            }
         }
         
         SmartDashboard.putBoolean("AimAndDrive/UsingLimelight", usingLimelight);

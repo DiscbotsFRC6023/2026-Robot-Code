@@ -113,9 +113,9 @@ public final class SubsystemCommands {
     }
 
     public Command shootManually() {
-        return shooter.spinUpCommand(1600.0)
+        return shooter.spinUpCommand(1500.0)
             .andThen(
-                Commands.waitSeconds(0.75),
+                Commands.waitSeconds(1),
                 Commands.parallel(
                     feed()
                 ))
@@ -138,7 +138,7 @@ public final class SubsystemCommands {
             Commands.parallel(
                 feeder.feedCommand(),
                 floor.feedCommand(),
-                Commands.waitSeconds(4)
+                Commands.waitSeconds(2.5)
                     .andThen(intake.slowHomeCommand())
             )
         );
