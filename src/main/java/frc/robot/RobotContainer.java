@@ -158,6 +158,7 @@ public class RobotContainer {
     aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
     
     /* Y button → shoot with RPM based on distance from AprilTag */
+    aux.y().whileTrue(subsystemCommands.ferry());
   }
 
   public Command getAutonomousCommand() {

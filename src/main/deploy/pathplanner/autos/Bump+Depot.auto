@@ -5,34 +5,15 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "OverBump1"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
-              }
-            ]
+            "pathName": "DriveBackToOverBump"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "BumpBack_shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "shoot"
+            "pathName": "OverBump"
           }
         },
         {
@@ -42,13 +23,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "BumpShot_toDepotIntake"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
+                  "pathName": "IntakeOverBump"
                 }
               }
             ]
@@ -57,13 +32,46 @@
         {
           "type": "path",
           "data": {
-            "pathName": "bumpDepotShot"
+            "pathName": "BackOverBump"
           }
         },
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "shoot"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "TurnShootOverBump"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "OverBumpDepotIntake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "BumpDepotShot"
+                }
+              }
+            ]
           }
         }
       ]

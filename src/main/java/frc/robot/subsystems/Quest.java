@@ -23,11 +23,33 @@ public class Quest extends SubsystemBase {
   private double offsetX = -0.600;
   private double offsetY = 0.0;
   private double offsetRotationDeg = 180.0;
+  private boolean headingInputIsDegrees = true;
 
   public Quest() {
     SmartDashboard.putNumber("Quest2/OffsetX_m", offsetX);
     SmartDashboard.putNumber("Quest2/OffsetY_m", offsetY);
     SmartDashboard.putNumber("Quest2/Rotation_deg", offsetRotationDeg);
+    SmartDashboard.putBoolean("Quest2/HeadingInputIsDegrees", headingInputIsDegrees);
+  }
+
+  private Rotation2d decodeQuestHeading(Pose2d rawPose) {
+    final double rawYaw = rawPose.getRotation().getRadians();
+    return headingInputIsDegrees
+        ? Rotation2d.fromDegrees(rawYaw)
+        : Rotation2d.fromRadians(rawYaw);
+  }
+
+  private Pose2d encodeRobotPoseForQuest(Pose2d robotPose) {
+    if (!headingInputIsDegrees) {
+      return robotPose;
+    }
+
+    final double robotHeadingDeg = robotPose.getRotation().getDegrees();
+    return new Pose2d(
+        robotPose.getX(),
+        robotPose.getY(),
+        Rotation2d.fromRadians(robotHeadingDeg)
+    );
   }
 
   @Override
@@ -38,11 +60,17 @@ public class Quest extends SubsystemBase {
     offsetX = SmartDashboard.getNumber("Quest2/OffsetX_m", offsetX);
     offsetY = SmartDashboard.getNumber("Quest2/OffsetY_m", offsetY);
     offsetRotationDeg = SmartDashboard.getNumber("Quest2/Rotation_deg", offsetRotationDeg);
+    headingInputIsDegrees = SmartDashboard.getBoolean("Quest2/HeadingInputIsDegrees", headingInputIsDegrees);
 
     PoseFrame[] frames = questNav.getAllUnreadPoseFrames();
     if (frames.length > 0) {
-      Pose2d rawPose = frames[frames.length - 1].questPose3d().toPose2d(); // Assuming questPose3d() returns a Pose3d and we convert it to Pose2d
+      Pose2d unreadRawPose = frames[frames.length - 1].questPose3d().toPose2d();
       latestTimestamp = frames[frames.length - 1].dataTimestamp();
+
+      Pose2d rawPose = new Pose2d(
+          unreadRawPose.getTranslation(),
+          decodeQuestHeading(unreadRawPose)
+      );
       
       // Build transform with current tunables
       Transform2d robotToQuest = new Transform2d(
@@ -60,6 +88,7 @@ public class Quest extends SubsystemBase {
       SmartDashboard.putNumber("Quest2/RAW X", rawPose.getX());
       SmartDashboard.putNumber("Quest2/RAW Y", rawPose.getY());
       SmartDashboard.putNumber("Quest2/RAW Rotation (deg)", rawPose.getRotation().getDegrees());
+  SmartDashboard.putNumber("Quest2/RAW Rotation Source Value", unreadRawPose.getRotation().getRadians());
       
       SmartDashboard.putString("Quest2/TRANSFORMED Robot Pose", latestPose.toString());
       SmartDashboard.putNumber("Quest2/TRANSFORMED X (m)", latestPose.getX());
@@ -92,6 +121,7 @@ public class Quest extends SubsystemBase {
     double currentOffsetX = SmartDashboard.getNumber("Quest2/OffsetX_m", offsetX);
     double currentOffsetY = SmartDashboard.getNumber("Quest2/OffsetY_m", offsetY);
     double currentOffsetRotation = SmartDashboard.getNumber("Quest2/Rotation_deg", offsetRotationDeg);
+    headingInputIsDegrees = SmartDashboard.getBoolean("Quest2/HeadingInputIsDegrees", headingInputIsDegrees);
     
     Transform2d robotToQuest = new Transform2d(
         currentOffsetX, 
@@ -100,7 +130,7 @@ public class Quest extends SubsystemBase {
     );
     
     
-    Pose2d questPose2d = robotPose.transformBy(robotToQuest);
+    Pose2d questPose2d = encodeRobotPoseForQuest(robotPose).transformBy(robotToQuest);
     Pose3d questPose3d = new Pose3d(questPose2d);
     questNav.setPose(questPose3d);
   }

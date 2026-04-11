@@ -134,11 +134,11 @@ public final class SubsystemCommands {
 
     private Command feed() {
         return Commands.sequence(
-            Commands.waitSeconds(0.25),
+            Commands.waitSeconds(0.1),
             Commands.parallel(
                 feeder.feedCommand(),
                 floor.feedCommand(),
-                Commands.waitSeconds(2.5)
+                Commands.waitSeconds(2)
                     .andThen(intake.slowHomeCommand())
             )
         );
