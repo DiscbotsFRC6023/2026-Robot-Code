@@ -38,6 +38,12 @@
                 "data": {
                   "name": "shoot"
                 }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "intake2"
+                }
               }
             ]
           }

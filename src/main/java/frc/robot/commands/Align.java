@@ -116,7 +116,10 @@ public class Align extends Command {
         // --- Rotation (auto-aim via PID) ---
         targetHeading = getDirectionToTarget();
         double currentYawRad = swerve.getYaw().getRadians();
-        double rotationOutput = headingController.calculate(currentYawRad, targetHeading.getRadians());
+        double headingError = headingController.calculate(currentYawRad, targetHeading.getRadians());
+        
+        // Scale PID output -to rad/s by multiplying by MAX_ANGULAR_VELOCITY
+        double rotationOutput = headingError * Constants.Swerve.MAX_ANGULAR_VELOCITY;
 
         // Clamp rotation to max angular velocity
         rotationOutput = MathUtil.clamp(rotationOutput,

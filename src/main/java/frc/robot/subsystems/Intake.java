@@ -36,7 +36,7 @@ import frc.robot.Ports;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.90);
+        INTAKE(0.9);
 
         private final double percentOutput;
 
@@ -50,10 +50,10 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
-        HOMED(10),
-        STOWED(10),
-        INTAKE(-50),
-        AGITATE(-10);
+        HOMED(12),
+        STOWED(12),
+        INTAKE(-49),
+        AGITATE(-25);
         
         private final double degrees;
 
@@ -154,6 +154,12 @@ public class Intake extends SubsystemBase {
             pivotMotionMagicRequest
                 .withPosition(position.angle())
         );
+    }
+
+    public void setSlowPivot(Position position) {
+        // Set pivot with reduced voltage to slow it down to 50%
+        setPivotPercentOutput(0.1);
+        set(position);
     }
 
     public void set(Speed speed) {

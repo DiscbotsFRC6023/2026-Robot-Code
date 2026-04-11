@@ -113,7 +113,7 @@ public final class SubsystemCommands {
     }
 
     public Command shootManually() {
-        return shooter.spinUpCommand(1500.0)
+        return shooter.spinUpCommand(1550.0)
             .andThen(
                 Commands.waitSeconds(1),
                 Commands.parallel(

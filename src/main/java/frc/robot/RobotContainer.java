@@ -83,16 +83,18 @@ public class RobotContainer {
    */
   private void registerNamedCommands() {
     NamedCommands.registerCommand("intake", intake.intakeCommand().withTimeout(4));
+    NamedCommands.registerCommand("intake2", intake.intakeCommand().withTimeout(3));
     NamedCommands.registerCommand("feed",
         Commands.parallel(feeder.feedCommand(), Commands.waitSeconds(0.25).andThen(floor.feedCommand())));
     NamedCommands.registerCommand("spinUpShooter", shooter.spinUpCommand(3000));
     NamedCommands.registerCommand("shoot",
         Commands.parallel(
-            Commands.run(() -> shooter.setRPM(1400), shooter),
-            Commands.waitSeconds(3).andThen(feeder.feedCommand()),
-            Commands.waitSeconds(3).andThen(floor.feedCommand()),
-            Commands.waitSeconds(3).andThen(intake.slowHomeCommand())
-        ).withTimeout(8).finallyDo(() -> shooter.stop()));
+            Commands.run(() -> shooter.setRPM(1450
+            ), shooter),
+            Commands.waitSeconds(2).andThen(feeder.feedCommand()),
+            Commands.waitSeconds(2).andThen(floor.feedCommand()),
+            Commands.waitSeconds(2).andThen(intake.slowHomeCommand())
+        ).withTimeout(6).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("shootshort",
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(1750), shooter),
