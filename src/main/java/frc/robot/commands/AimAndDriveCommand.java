@@ -12,13 +12,12 @@ import frc.robot.Constants;
 import frc.robot.Landmarks;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Limelight;
-import frc.robot.subsystems.Quest;
 
 /**
  * Drives the robot using manual translation inputs while automatically
  * rotating to face a target position on the field (e.g. the hub / speaker).
  * Uses PID-controlled heading with our custom Swerve subsystem.
- * Uses Limelight for AprilTag-based pose estimation when available, falls back to Quest.
+ * Uses Limelight for AprilTag-based pose estimation.
  */
 public class AimAndDriveCommand extends Command {
     /** Aim tolerance in degrees — if within this, {@link #isAimed()} returns true. */
@@ -26,38 +25,35 @@ public class AimAndDriveCommand extends Command {
 
     private final CommandSwerveDrivetrain swerve;
     private final Limelight limelight;
-    private final Quest quest;
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
 
     private final PIDController headingController;
 
     private Rotation2d targetHeading = new Rotation2d();
+    private int activeTargetTagId = -1;
 
     public AimAndDriveCommand(
         CommandSwerveDrivetrain swerve,
         Limelight limelight,
-        Quest quest,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
     ) {
         this.swerve = swerve;
         this.limelight = limelight;
-        this.quest = quest;
         this.forwardInput = forwardInput;
         this.leftInput = leftInput;
 
         // PID controller for rotational heading (input/output in radians)
-        // P-gain tuned for responsive aiming while preventing oscillation
-        headingController = new PIDController(2, 0.0, 0.0);
+        headingController = new PIDController(5.0, 0.0, 0.0);
         headingController.enableContinuousInput(-Math.PI, Math.PI);
         headingController.setTolerance(Math.toRadians(AIM_TOLERANCE_DEG));
 
         addRequirements(swerve);
     }
 
-    public AimAndDriveCommand(CommandSwerveDrivetrain swerve, Limelight limelight, Quest quest) {
-        this(swerve, limelight, quest, () -> 0, () -> 0);
+    public AimAndDriveCommand(CommandSwerveDrivetrain swerve, Limelight limelight) {
+        this(swerve, limelight, () -> 0, () -> 0);
     }
 
     /**
@@ -72,34 +68,39 @@ public class AimAndDriveCommand extends Command {
 
     /**
      * Computes the field-relative direction from the robot to the target.
-     * Uses Quest pose estimate if available, falls back to Limelight, then falls back to landmark position.
+     * Uses Limelight pose estimate if available, otherwise falls back to landmark position.
      */
     private Rotation2d getDirectionToTarget() {
         Translation2d robotPosition = swerve.getPose().getTranslation();
-        boolean usingLimelight = false;
-        boolean usingQuest = false;
-        
-        // Try to get updated pose from Quest first for more reliable alignment
-        if (quest.hasFreshPose()) {
-            robotPosition = quest.getLatestPose().getTranslation();
-            usingQuest = true;
-        } else {
-            // Fall back to Limelight if Quest is not available
-            var measurement = limelight.getMeasurement(swerve.getPose());
-            if (measurement.isPresent()) {
-                // Feed the vision measurement back into the pose estimator so the swerve heading stays accurate
-                swerve.addVisionMeasurement(
-                    measurement.get().poseEstimate.pose,
-                    measurement.get().poseEstimate.timestampSeconds,
-                    measurement.get().standardDeviations
-                );
-                robotPosition = measurement.get().poseEstimate.pose.getTranslation();
-                usingLimelight = true;
-            }
+
+        var goalObservation = limelight.getBestTargetObservation(Landmarks.goalTagIds());
+        if (goalObservation.isPresent()) {
+            activeTargetTagId = goalObservation.get().id();
+            SmartDashboard.putBoolean("AimAndDrive/UsingGoalTag", true);
+            SmartDashboard.putNumber("AimAndDrive/GoalTagId", activeTargetTagId);
+
+            // tx > 0 means target appears to camera-right; rotate robot right to center it.
+            return swerve.getYaw().minus(Rotation2d.fromDegrees(goalObservation.get().txDegrees()));
         }
+
+        activeTargetTagId = -1;
+        SmartDashboard.putBoolean("AimAndDrive/UsingGoalTag", false);
+        SmartDashboard.putNumber("AimAndDrive/GoalTagId", activeTargetTagId);
         
-        SmartDashboard.putBoolean("AimAndDrive/UsingLimelight", usingLimelight);
-        SmartDashboard.putBoolean("AimAndDrive/UsingQuest", usingQuest);
+        // Try to get updated pose from Limelight for better AprilTag-based alignment
+        var measurement = limelight.getMeasurement(swerve.getPose());
+        if (measurement.isPresent()) {
+            // Feed the vision measurement back into the pose estimator so the swerve heading stays accurate
+            swerve.addVisionMeasurement(
+                measurement.get().poseEstimate.pose,
+                measurement.get().poseEstimate.timestampSeconds,
+                measurement.get().standardDeviations
+            );
+            robotPosition = measurement.get().poseEstimate.pose.getTranslation();
+            SmartDashboard.putBoolean("AimAndDrive/UsingLimelight", true);
+        } else {
+            SmartDashboard.putBoolean("AimAndDrive/UsingLimelight", false);
+        }
         
         return Landmarks.hubPosition().minus(robotPosition).getAngle();
     }

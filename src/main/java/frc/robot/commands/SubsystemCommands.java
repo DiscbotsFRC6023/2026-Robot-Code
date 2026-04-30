@@ -84,7 +84,7 @@ public final class SubsystemCommands {
     }
 
     public Command aimAndShoot() {
-        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, limelight, quest, forwardInput, leftInput);
+        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, limelight, forwardInput, leftInput);
         final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getPose());
         return Commands.parallel(
             aimAndDriveCommand,
@@ -102,14 +102,6 @@ public final class SubsystemCommands {
                 )
             )
         );
-    }
-
-    /**
-     * Command to align the robot to a target position using Quest-based positioning.
-     * Uses manual translation controls while auto-aiming to face the alignment target.
-     */
-    public Command align() {
-        return new Align(swerve, quest, forwardInput, leftInput);
     }
 
     public Command shootManually() {
