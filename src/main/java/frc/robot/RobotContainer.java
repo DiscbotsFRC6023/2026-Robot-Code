@@ -91,9 +91,9 @@ public class RobotContainer {
         Commands.parallel(
             Commands.run(() -> shooter.setRPM(1450
             ), shooter),
-            Commands.waitSeconds(2).andThen(feeder.feedCommand()),
-            Commands.waitSeconds(2).andThen(floor.feedCommand()),
-            Commands.waitSeconds(2).andThen(intake.slowHomeCommand())
+            Commands.waitSeconds(3).andThen(feeder.feedCommand()),
+            Commands.waitSeconds(3).andThen(floor.feedCommand()),
+            Commands.waitSeconds(3).andThen(intake.slowHomeCommand())
         ).withTimeout(6).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("shootshort",
         Commands.parallel(
