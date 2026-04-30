@@ -65,8 +65,24 @@ public class Floor extends SubsystemBase {
         );
     }
 
+    public void setPercentOutput(double percentOutput) {
+        final Voltage output = Volts.of(percentOutput * 12.0);
+        motor1.setControl(
+            voltageRequest
+                .withOutput(output)
+        );
+        motor2.setControl(
+            voltageRequest
+                .withOutput(output)
+        );
+    }
+
     public Command feedCommand() {
         return startEnd(() -> set(Speed.FEED), () -> set(Speed.STOP));
+    }
+
+    public Command reverseIntakeAssistCommand() {
+        return startEnd(() -> setPercentOutput(-0.25), () -> set(Speed.STOP));
     }
 
     @Override

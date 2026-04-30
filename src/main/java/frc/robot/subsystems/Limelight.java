@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import edu.wpi.first.math.Matrix;
@@ -11,6 +12,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 
@@ -55,6 +57,39 @@ public class Limelight extends SubsystemBase {
         return Optional.of(new Measurement(poseEstimate_MegaTag2, standardDeviations));
     }
 
+    public Optional<TargetObservation> getBestTargetObservation(int[] validTagIds) {
+        RawFiducial[] rawFiducials = LimelightHelpers.getRawFiducials(name);
+        if (rawFiducials == null || rawFiducials.length == 0 || validTagIds == null || validTagIds.length == 0) {
+            return Optional.empty();
+        }
+
+        TargetObservation best = null;
+        for (RawFiducial fiducial : rawFiducials) {
+            if (fiducial == null || !contains(validTagIds, fiducial.id)) {
+                continue;
+            }
+
+            TargetObservation candidate = new TargetObservation(
+                fiducial.id,
+                fiducial.txnc,
+                fiducial.tync,
+                fiducial.ta,
+                fiducial.distToRobot,
+                fiducial.ambiguity
+            );
+
+            if (best == null || candidate.ambiguity() < best.ambiguity()) {
+                best = candidate;
+            }
+        }
+
+        return Optional.ofNullable(best);
+    }
+
+    private boolean contains(int[] values, int target) {
+        return Arrays.stream(values).anyMatch(id -> id == target);
+    }
+
     public static class Measurement {
         public final PoseEstimate poseEstimate;
         public final Matrix<N3, N1> standardDeviations;
@@ -64,4 +99,13 @@ public class Limelight extends SubsystemBase {
             this.standardDeviations = standardDeviations;
         }
     }
+
+    public static record TargetObservation(
+        int id,
+        double txDegrees,
+        double tyDegrees,
+        double area,
+        double distanceMeters,
+        double ambiguity
+    ) {}
 }

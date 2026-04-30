@@ -9,6 +9,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class Landmarks {
+    private static final int[] RED_GOAL_TAG_IDS = {8, 5, 11, 2, 9, 10};
+    private static final int[] BLUE_GOAL_TAG_IDS = {21, 24, 18, 27, 25, 26};
+
     public static Translation2d hubPosition() {
         final Optional<Alliance> alliance = DriverStation.getAlliance();
         if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
@@ -28,5 +31,13 @@ public class Landmarks {
             return new Translation2d(4.641, 4.0);
         }
         return new Translation2d(11.928, 4.0);
+    }
+
+    public static int[] goalTagIds() {
+        final Optional<Alliance> alliance = DriverStation.getAlliance();
+        if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
+            return BLUE_GOAL_TAG_IDS;
+        }
+        return RED_GOAL_TAG_IDS;
     }
 }
