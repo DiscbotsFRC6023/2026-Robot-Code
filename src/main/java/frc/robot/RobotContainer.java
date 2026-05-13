@@ -24,6 +24,9 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Quest;
 import frc.robot.subsystems.Shooter;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.math.geometry.Translation2d;
 
 public class RobotContainer {
   /* Controllers */
@@ -72,6 +75,29 @@ public class RobotContainer {
     //Haptics.initialize(driver, aux);
 
     configureBindings();
+
+    // Periodic dashboard updater: live distance to alliance goal (Quest preferred)
+    CommandScheduler.getInstance().schedule(Commands.run(() -> {
+      Translation2d robotTrans;
+      if (this.quest.hasFreshPose()) {
+        robotTrans = this.quest.getLatestPose().getTranslation();
+      } else {
+        robotTrans = this.swerve.getPose().getTranslation();
+      }
+
+      double goalX = 11.913; // Red default
+      double goalY = 4.023;
+      var alliance = DriverStation.getAlliance();
+      if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
+        goalX = 4.625;
+        goalY = 4.023;
+      }
+
+      double dx = robotTrans.getX() - goalX;
+      double dy = robotTrans.getY() - goalY;
+      double distance = Math.hypot(dx, dy);
+      SmartDashboard.putNumber("Live/DistanceToGoal_m", distance);
+    }).repeatedly());
   }
 
   /**
