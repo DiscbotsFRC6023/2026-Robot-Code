@@ -15,6 +15,11 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Quest;
 import frc.robot.subsystems.Shooter;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import java.util.Optional;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.geometry.Translation2d;
 
 public final class SubsystemCommands {
     private final CommandSwerveDrivetrain swerve;
@@ -23,6 +28,7 @@ public final class SubsystemCommands {
     private final Feeder feeder;
     private final Shooter shooter;
     private final Hood hood;
+    @SuppressWarnings("unused")
     private final Hanger hanger;
     private final Limelight limelight;
     private final Quest quest;
@@ -285,43 +291,50 @@ public final class SubsystemCommands {
     }
 
     // public Command shootByDistance() {
-    //     return Commands.runOnce(() -> {
-    //         var observation = limelight.getTargetObservation();
-            
-    //         double targetRPM = 1500.0; // Default RPM
-            
-    //         if (observation.isPresent()) {
-    //             double distanceFeet = observation.get().distanceMeters() / 0.3048; // Convert to feet
+    // Shoot by distance to alliance goal using Quest (fallback to swerve) pose.
+    public Command shootByDistance() {
+        return Commands.runOnce(() -> {
+            // Get robot pose translation either from Quest (preferred) or swerve
+            Translation2d robotTrans = null;
+            if (quest.hasFreshPose()) {
+                robotTrans = quest.getLatestPose().getTranslation();
+            } else {
+                robotTrans = swerve.getPose().getTranslation();
+            }
 
-    //             // Distance-based RPM lookup table with if-else statements
-    //             if (distanceFeet <= 4.5) {
-    //                 targetRPM = 1450.0;
-    //             } else if (distanceFeet <= 5.5) {
-    //                 targetRPM = 1500.0;
-    //             } else if (distanceFeet <= 6.5) {
-    //                 targetRPM = 1563.0;
-    //             } else if (distanceFeet <= 7.5) {
-    //                 targetRPM = 1610.0;
-    //             } else if (distanceFeet <= 8.5) {
-    //                 targetRPM = 1658.0;
-    //             } else if (distanceFeet <= 9.5) {
-    //                 targetRPM = 1703.0;
-    //             } else if (distanceFeet <= 10.5) {
-    //                 targetRPM = 1758.0;
-    //             } else if (distanceFeet <= 11.5) {
-    //                 targetRPM = 1815.0;
-    //             } else if (distanceFeet >= 12.0) {
-    //                 targetRPM = 1850.0;
-    //             }
-    //         }
-            
-    //         shooter.setDashboardTargetRPM(targetRPM);
-    //     }).andThen(shooter.dashboardSpinUpCommand())
-    //         .andThen(
-    //             Commands.waitSeconds(0.75),
-    //             Commands.parallel(
-    //                 feed()
-    //             ))
-    //         .handleInterrupt(() -> shooter.stop());
-    // }
+            // Alliance-specific goal coordinates (meters)
+            final Optional<Alliance> alliance = DriverStation.getAlliance();
+            double goalX = 11.913; // default Red
+            double goalY = 4.023;
+            if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
+                goalX = 4.625;
+                goalY = 4.023;
+            }
+
+            double dx = robotTrans.getX() - goalX;
+            double dy = robotTrans.getY() - goalY;
+            double distanceMeters = Math.hypot(dx, dy);
+
+            // Convert to meters -> use thresholds in meters (dummy RPMs for now)
+            double targetRPM = 1500.0; // default
+            if (distanceMeters <= 2.0) { // very close
+                targetRPM = 1400.0;
+            } else if (distanceMeters <= 3.0) {
+                targetRPM = 1500.0;
+            } else if (distanceMeters <= 4.0) {
+                targetRPM = 1600.0;
+            } else if (distanceMeters <= 5.0) {
+                targetRPM = 1700.0;
+            } else {
+                targetRPM = 1800.0;
+            }
+
+            shooter.setRPM(targetRPM);
+            SmartDashboard.putNumber("ShootByDistance/DistanceM", distanceMeters);
+            SmartDashboard.putNumber("ShootByDistance/TargetRPM", targetRPM);
+        }, shooter).andThen(
+            Commands.waitSeconds(0.75),
+            Commands.parallel(feed())
+        ).handleInterrupt(() -> shooter.stop());
+    }
 }
