@@ -115,6 +115,8 @@ public class RobotContainer {
     /* X button → zero gyro heading */
     driver.x().onTrue(SubsystemCommands.zeroGyro(swerve));
 
+    driver.b().whileTrue(Commands.run(() -> swerve.xStance()));
+
     /* ── Aux (port 1) – mechanisms ── */
     aux.rightBumper().whileTrue(subsystemCommands.shootManually());
     aux.leftTrigger().whileTrue(intake.intakeCommand());

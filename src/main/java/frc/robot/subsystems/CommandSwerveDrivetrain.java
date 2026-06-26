@@ -146,6 +146,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         setControl(m_idle);
     }
 
+    /**
+     * X - Stance for locking swerve
+     */
+    public void xStance(){
+        setControl(new SwerveRequest.SwerveDriveBrake());
+    }
+
     // ======================== GETTERS ========================
 
     /**
