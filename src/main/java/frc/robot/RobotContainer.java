@@ -128,6 +128,7 @@ public class RobotContainer {
         ).withTimeout(3).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("stopShooter", Commands.runOnce(() -> shooter.stop(), shooter));
     NamedCommands.registerCommand("intakeStop", Commands.runOnce(() -> intake.set(Intake.Speed.STOP), intake));
+    NamedCommands.registerCommand("align", new AimAndDriveCommand(swerve, limelight).withTimeout(0.5));
     
     // Quest-based path correction commands
     NamedCommands.registerCommand("resetPoseToQuest", subsystemCommands.resetPoseToQuest());
