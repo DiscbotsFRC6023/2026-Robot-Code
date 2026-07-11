@@ -186,7 +186,7 @@ public class RobotContainer {
 
     /* ── Aux (port 1) – mechanisms ── */
     aux.rightBumper().whileTrue(subsystemCommands.shootManually());
-    aux.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
+    aux.rightTrigger().whileTrue(subsystemCommands.shootByDistance());
     aux.leftTrigger().whileTrue(Commands.parallel(intake.intakeCommand(), floor.reverseIntakeAssistCommand()));
     aux.leftBumper().onTrue(intake.runOnce(() -> intake.handleLeftBumperPress(true)));
     

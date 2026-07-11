@@ -82,7 +82,7 @@ public class Floor extends SubsystemBase {
     }
 
     public Command reverseIntakeAssistCommand() {
-        return startEnd(() -> setPercentOutput(-0.25), () -> set(Speed.STOP));
+        return startEnd(() -> setPercentOutput(0.25), () -> set(Speed.STOP));
     }
 
     @Override
