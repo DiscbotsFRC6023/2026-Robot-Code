@@ -31,7 +31,6 @@ public class AimAndDriveCommand extends Command {
     private final PIDController headingController;
 
     private Rotation2d targetHeading = new Rotation2d();
-    private int activeTargetTagId = -1;
 
     public AimAndDriveCommand(
         CommandSwerveDrivetrain swerve,
@@ -67,27 +66,20 @@ public class AimAndDriveCommand extends Command {
     }
 
     /**
-     * Computes the field-relative direction from the robot to the target.
-     * Uses Limelight pose estimate if available, otherwise falls back to landmark position.
+     * Computes the field-relative direction from the robot to the center of the goal.
+     *
+     * <p>Do not aim from an individual tag's horizontal offset: multiple goal tags can be
+     * visible at once, and changing between them makes the desired heading jump. Tags are
+     * used only to improve the robot pose; the field landmark supplies one stable aim point.
      */
     private Rotation2d getDirectionToTarget() {
         Translation2d robotPosition = swerve.getPose().getTranslation();
 
-        var goalObservation = limelight.getBestTargetObservation(Landmarks.goalTagIds());
-        if (goalObservation.isPresent()) {
-            activeTargetTagId = goalObservation.get().id();
-            SmartDashboard.putBoolean("AimAndDrive/UsingGoalTag", true);
-            SmartDashboard.putNumber("AimAndDrive/GoalTagId", activeTargetTagId);
-
-            // tx > 0 means target appears to camera-right; rotate robot right to center it.
-            return swerve.getYaw().minus(Rotation2d.fromDegrees(goalObservation.get().txDegrees()));
-        }
-
-        activeTargetTagId = -1;
+        // Aim at the goal center rather than a specific AprilTag.
         SmartDashboard.putBoolean("AimAndDrive/UsingGoalTag", false);
-        SmartDashboard.putNumber("AimAndDrive/GoalTagId", activeTargetTagId);
+        SmartDashboard.putNumber("AimAndDrive/GoalTagId", -1);
         
-        // Try to get updated pose from Limelight for better AprilTag-based alignment
+        // Use the Limelight measurement, when available, for a more accurate field pose.
         var measurement = limelight.getMeasurement(swerve.getPose());
         if (measurement.isPresent()) {
             // Feed the vision measurement back into the pose estimator so the swerve heading stays accurate
