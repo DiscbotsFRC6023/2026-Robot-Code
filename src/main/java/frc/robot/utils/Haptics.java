@@ -13,10 +13,10 @@ public class Haptics {
     private CommandXboxController aux;
     private Notifier pulseNotifier;
     private int pulseCounter;
-    private static Haptics instance;
+    private static Haptics instance = null;
 
     private Haptics(){
-        pulseNotifier = new Notifier(null);
+        pulseNotifier = new Notifier(() -> {stopRumble();});
     }
 
     public static void initialize(CommandXboxController driver, CommandXboxController aux){

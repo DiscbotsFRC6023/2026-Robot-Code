@@ -6,12 +6,14 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import frc.robot.utils.*;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AimAndDriveCommand;
 import frc.robot.commands.SubsystemCommands;
 import frc.robot.generated.TunerConstants;
@@ -62,7 +64,7 @@ public class RobotContainer {
 
     /* Set default commands */
     swerve.setDefaultCommand(
-        SubsystemCommands.teleopDrive(
+        SubsystemCommands.teleopDriveSlow(  // Change to teleopDrive() if you want full speed by default
             swerve,
             () -> -driver.getLeftY(),  // forward/back (negate because stick Y is inverted)
             () -> -driver.getLeftX(),  // strafe left/right
@@ -72,7 +74,7 @@ public class RobotContainer {
     );
 
     // Initialize Haptics
-    //Haptics.initialize(driver, aux);
+    Haptics.initialize(driver, aux);
 
     configureBindings();
 
@@ -175,9 +177,9 @@ public class RobotContainer {
     )
   );
    
-    /* Right trigger → slow mode (30% speed) */
+    /* Right trigger → turbo mode */
     driver.rightTrigger().whileTrue(
-        SubsystemCommands.teleopDriveSlow(
+        SubsystemCommands.teleopDrive(  // full speed
             swerve,
             () -> -driver.getLeftY(),
             () -> -driver.getLeftX(),
@@ -206,10 +208,11 @@ public class RobotContainer {
     return swerve;
   }
 
-/*   Trigger pulseTrigger = new Trigger(() -> GameState.shouldRumble())
+  Trigger pulseTrigger = new Trigger(() -> GameState.shouldRumble())
     .onTrue(Commands.runOnce(() -> {
+      System.out.println("Rumble triggered");
       Haptics.getInstance().pulse(3, 1, 1);
-    })); */
+    }));
 
   // TODO: Investigate need of methods below
   /** Returns the driver controller HID so Robot can set rumble. */

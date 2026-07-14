@@ -121,9 +121,9 @@ public final class SubsystemCommands {
     }
 
     public Command ferry() {
-        return shooter.spinUpCommand(2000.0)
+        return shooter.spinUpCommand(1725.0)
             .andThen(
-                Commands.waitSeconds(0),
+                Commands.waitSeconds(1),
                 Commands.parallel(
                     feed()
                 ))
