@@ -64,7 +64,7 @@ public class RobotContainer {
 
     /* Set default commands */
     swerve.setDefaultCommand(
-        SubsystemCommands.teleopDriveSlow(  // Change to teleopDrive() if you want full speed by default
+        SubsystemCommands.teleopDrive(
             swerve,
             () -> -driver.getLeftY(),  // forward/back (negate because stick Y is inverted)
             () -> -driver.getLeftX(),  // strafe left/right
@@ -177,9 +177,9 @@ public class RobotContainer {
     )
   );
    
-    /* Right trigger → turbo mode */
+    /* Right trigger → slow mode (30% speed) */
     driver.rightTrigger().whileTrue(
-        SubsystemCommands.teleopDrive(  // full speed
+        SubsystemCommands.teleopDriveSlow(
             swerve,
             () -> -driver.getLeftY(),
             () -> -driver.getLeftX(),
