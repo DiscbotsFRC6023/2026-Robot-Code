@@ -114,11 +114,11 @@ public class RobotContainer {
     NamedCommands.registerCommand("spinUpShooter", shooter.spinUpCommand(3000));
     NamedCommands.registerCommand("shoot",
         Commands.parallel(
-            Commands.run(() -> shooter.setRPM(1450
+            Commands.run(() -> shooter.setRPM(1500
             ), shooter),
-            Commands.waitSeconds(3).andThen(feeder.feedCommand()),
-            Commands.waitSeconds(3).andThen(floor.feedCommand()),
-            Commands.waitSeconds(3).andThen(intake.slowHomeCommand())
+            Commands.waitSeconds(1.5).andThen(feeder.feedCommand()),
+            Commands.waitSeconds(1.5).andThen(floor.feedCommand()),
+            Commands.waitSeconds(1.5).andThen(intake.slowHomeCommand())
         ).withTimeout(6).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("shootshort",
         Commands.parallel(
@@ -128,7 +128,7 @@ public class RobotContainer {
         ).withTimeout(3).finallyDo(() -> shooter.stop()));
     NamedCommands.registerCommand("stopShooter", Commands.runOnce(() -> shooter.stop(), shooter));
     NamedCommands.registerCommand("intakeStop", Commands.runOnce(() -> intake.set(Intake.Speed.STOP), intake));
-    NamedCommands.registerCommand("align", new AimAndDriveCommand(swerve, limelight).withTimeout(0.5));
+    NamedCommands.registerCommand("align", new AimAndDriveCommand(swerve, limelight).withTimeout(1));
     
     // Quest-based path correction commands
     NamedCommands.registerCommand("resetPoseToQuest", subsystemCommands.resetPoseToQuest());
